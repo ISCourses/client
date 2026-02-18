@@ -425,11 +425,25 @@ export default function CourseLearnPage() {
     setPreviousAttempt(null)
   }
 
-  const handleQuizAnswerChange = (questionIndex: number, answer: string) => {
+  const handleQuizAnswerChange = (questionIndex: number, answer: string | string[]) => {
     setQuizAnswers(prev => ({
       ...prev,
       [questionIndex]: answer
     }))
+  }
+
+  const handleCheckboxChange = (questionIndex: number, option: string, checked: boolean) => {
+    setQuizAnswers(prev => {
+      const current = prev[questionIndex]
+      const currentArray = Array.isArray(current) ? current : (current ? [current] : [])
+      const newArray = checked
+        ? [...currentArray, option]
+        : currentArray.filter((a: string) => a !== option)
+      return {
+        ...prev,
+        [questionIndex]: newArray
+      }
+    })
   }
 
   const submitQuiz = async () => {
@@ -437,7 +451,11 @@ export default function CourseLearnPage() {
 
     // Validate that all questions are answered
     const totalQuestions = currentQuiz.questions.length
-    const answeredQuestions = Object.keys(quizAnswers).length
+    const answeredQuestions = Object.keys(quizAnswers).filter(key => {
+      const answer = quizAnswers[parseInt(key)]
+      return answer !== undefined && answer !== null && answer !== '' && 
+             (Array.isArray(answer) ? answer.length > 0 : true)
+    }).length
     
     if (answeredQuestions < totalQuestions) {
       toast.error(`Please answer all ${totalQuestions} questions before submitting`)
@@ -447,13 +465,17 @@ export default function CourseLearnPage() {
     setSubmittingQuiz(true)
     try {
       // Prepare answers array in the order of questions
-      // Convert option index to actual option text
       const answers = currentQuiz.questions.map((question: any, index: number) => {
-        const selectedIndex = quizAnswers[index]
-        if (selectedIndex !== undefined && question.options[selectedIndex]) {
-          return question.options[selectedIndex] // Return the actual option text
+        const answer = quizAnswers[index]
+        const questionType = question.type || 'multiple-choice'
+        
+        // For checkbox, return array; for others, return string
+        if (questionType === 'checkbox') {
+          return Array.isArray(answer) ? answer : (answer ? [answer] : [])
         }
-        return ''
+        
+        // For other types, return string
+        return Array.isArray(answer) ? answer.join(', ') : (answer || '')
       })
 
       // Submit quiz attempt
@@ -462,7 +484,13 @@ export default function CourseLearnPage() {
       })
 
       setQuizResults(response.data)
-      toast.success(`Quiz submitted! Score: ${response.data.score}%`)
+      
+      // Show appropriate message based on grading status
+      if (response.data.manualGradingRequired) {
+        toast.success('Quiz submitted! Your answers are being reviewed and will be graded manually.')
+      } else {
+        toast.success(`Quiz submitted! Score: ${response.data.score}%`)
+      }
       
       // Refresh previous attempt to show the new one
       if (currentQuiz) {
@@ -828,40 +856,120 @@ export default function CourseLearnPage() {
                     ) : (
                       <>
                     <div className="space-y-4">
-                      {currentQuiz.questions.map((question: any, index: number) => (
-                        <div key={question._id} className="border rounded-lg p-4">
-                          <h5 className="font-medium text-gray-900 mb-3">
-                            Question {index + 1}: {question.question}
-                          </h5>
-                          <div className="space-y-2">
-                            {question.options.map((option: string, optionIndex: number) => (
-                              <label key={optionIndex} className="flex items-center space-x-3 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name={`question-${index}`}
-                                  value={optionIndex}
-                                      checked={quizAnswers[index] === optionIndex.toString()}
+                      {currentQuiz.questions.map((question: any, index: number) => {
+                        const questionType = question.type || 'multiple-choice'
+                        const currentAnswer = quizAnswers[index]
+                        
+                        return (
+                          <div key={question._id || index} className="border rounded-lg p-4">
+                            <h5 className="font-medium text-gray-900 mb-3">
+                              Question {index + 1}: {question.question}
+                              {questionType === 'text' || questionType === 'textarea' ? (
+                                <span className="ml-2 text-xs text-gray-500">(Manual grading)</span>
+                              ) : null}
+                            </h5>
+                            
+                            {/* Multiple Choice */}
+                            {questionType === 'multiple-choice' && question.options && (
+                              <div className="space-y-2">
+                                {question.options.map((option: string, optionIndex: number) => (
+                                  <label key={optionIndex} className="flex items-center space-x-3 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name={`question-${index}`}
+                                      value={option}
+                                      checked={currentAnswer === option}
                                       onChange={(e) => handleQuizAnswerChange(index, e.target.value)}
-                                  className="text-red-600 focus:ring-red-500"
-                                />
-                                <span className="text-gray-700">{option}</span>
-                              </label>
-                            ))}
+                                      className="text-red-600 focus:ring-red-500"
+                                    />
+                                    <span className="text-gray-700">{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Select */}
+                            {questionType === 'select' && question.options && (
+                              <select
+                                value={currentAnswer || ''}
+                                onChange={(e) => handleQuizAnswerChange(index, e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                              >
+                                <option value="">Select an option</option>
+                                {question.options.map((option: string, optionIndex: number) => (
+                                  <option key={optionIndex} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+
+                            {/* Checkbox */}
+                            {questionType === 'checkbox' && question.options && (
+                              <div className="space-y-2">
+                                {question.options.map((option: string, optionIndex: number) => {
+                                  const isChecked = Array.isArray(currentAnswer) 
+                                    ? currentAnswer.includes(option)
+                                    : currentAnswer === option
+                                  return (
+                                    <label key={optionIndex} className="flex items-center space-x-3 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={(e) => handleCheckboxChange(index, option, e.target.checked)}
+                                        className="text-red-600 focus:ring-red-500"
+                                      />
+                                      <span className="text-gray-700">{option}</span>
+                                    </label>
+                                  )
+                                })}
+                              </div>
+                            )}
+
+                            {/* Text */}
+                            {questionType === 'text' && (
+                              <input
+                                type="text"
+                                value={currentAnswer || ''}
+                                onChange={(e) => handleQuizAnswerChange(index, e.target.value)}
+                                placeholder="Enter your answer"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                              />
+                            )}
+
+                            {/* Textarea */}
+                            {questionType === 'textarea' && (
+                              <textarea
+                                value={currentAnswer || ''}
+                                onChange={(e) => handleQuizAnswerChange(index, e.target.value)}
+                                placeholder="Enter your answer"
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                              />
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                     
                     <div className="flex justify-between items-center pt-4 border-t">
                       <p className="text-sm text-gray-500">
-                            {Object.keys(quizAnswers).length} of {currentQuiz.questions.length} questions answered
-                          </p>
-                          <Button 
-                            onClick={submitQuiz}
-                            disabled={submittingQuiz || Object.keys(quizAnswers).length < currentQuiz.questions.length}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            {submittingQuiz ? 'Submitting...' : 'Submit Quiz'}
+                        {Object.keys(quizAnswers).filter(key => {
+                          const answer = quizAnswers[parseInt(key)]
+                          return answer !== undefined && answer !== null && answer !== '' && 
+                                 (Array.isArray(answer) ? answer.length > 0 : true)
+                        }).length} of {currentQuiz.questions.length} questions answered
+                      </p>
+                      <Button 
+                        onClick={submitQuiz}
+                        disabled={submittingQuiz || Object.keys(quizAnswers).filter(key => {
+                          const answer = quizAnswers[parseInt(key)]
+                          return answer !== undefined && answer !== null && answer !== '' && 
+                                 (Array.isArray(answer) ? answer.length > 0 : true)
+                        }).length < currentQuiz.questions.length}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        {submittingQuiz ? 'Submitting...' : 'Submit Quiz'}
                       </Button>
                     </div>
                       </>

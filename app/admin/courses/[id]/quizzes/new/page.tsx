@@ -15,8 +15,10 @@ import toast from 'react-hot-toast'
 
 interface Question {
   question: string
-  options: string[]
-  correctAnswer: string
+  type: 'multiple-choice' | 'text' | 'textarea' | 'select' | 'checkbox'
+  options?: string[]
+  correctAnswer?: string
+  correctAnswers?: string[] // For checkbox
   explanation: string
 }
 
@@ -42,10 +44,11 @@ export default function NewQuizPage() {
     handleSubmit,
     formState: { errors },
     control,
-    watch
+    watch,
+    setValue
   } = useForm<QuizForm>({
     defaultValues: {
-      questions: [{ question: '', options: ['', '', '', ''], correctAnswer: '', explanation: '' }],
+      questions: [{ question: '', type: 'multiple-choice', options: ['', '', '', ''], correctAnswer: '', explanation: '' }],
       timeLimit: 30,
       passingScore: 70,
       maxAttempts: 3,
@@ -61,8 +64,30 @@ export default function NewQuizPage() {
   const onSubmit = async (data: QuizForm) => {
     setSubmitting(true)
     try {
+      // Process questions to handle checkbox correctAnswers
+      const processedQuestions = data.questions.map(q => {
+        const question: any = {
+          question: q.question,
+          type: q.type,
+          explanation: q.explanation || ''
+        }
+        
+        if (q.type === 'checkbox') {
+          question.options = q.options?.filter(opt => opt && opt.trim())
+          question.correctAnswers = Array.isArray(q.correctAnswers) ? q.correctAnswers : []
+        } else if (q.type === 'multiple-choice' || q.type === 'select') {
+          question.options = q.options?.filter(opt => opt && opt.trim())
+          question.correctAnswer = q.correctAnswer
+        } else if (q.type === 'text' || q.type === 'textarea') {
+          question.correctAnswer = q.correctAnswer
+        }
+        
+        return question
+      })
+
       await api.post('/quizzes', {
         ...data,
+        questions: processedQuestions,
         course: courseId
       })
       toast.success('Quiz created successfully!')
@@ -76,7 +101,7 @@ export default function NewQuizPage() {
   }
 
   const addQuestion = () => {
-    append({ question: '', options: ['', '', '', ''], correctAnswer: '', explanation: '' })
+    append({ question: '', type: 'multiple-choice', options: ['', '', '', ''], correctAnswer: '', explanation: '' })
   }
 
   if (loading) {
@@ -256,6 +281,22 @@ export default function NewQuizPage() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-2">
+                        Question Type *
+                      </label>
+                      <select
+                        {...register(`questions.${index}.type`, { required: 'Question type is required' })}
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      >
+                        <option value="multiple-choice">Multiple Choice (Auto-graded)</option>
+                        <option value="text">Text (Manual grading)</option>
+                        <option value="textarea">Textarea (Manual grading)</option>
+                        <option value="select">Select (Auto-graded)</option>
+                        <option value="checkbox">Checkbox (Auto-graded)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
                         Question *
                       </label>
                       <Input
@@ -265,43 +306,115 @@ export default function NewQuizPage() {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Options *
-                      </label>
-                      {[0, 1, 2, 3].map((optIndex) => (
-                        <div key={optIndex} className="mb-2">
-                          <Input
-                            {...register(`questions.${index}.options.${optIndex}`, { required: 'Option is required' })}
-                            placeholder={`Option ${optIndex + 1}`}
-                            className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
-                          />
-                        </div>
-                      ))}
-                    </div>
+                    {/* Options for multiple-choice, select, checkbox */}
+                    {(watch(`questions.${index}.type`) === 'multiple-choice' || 
+                      watch(`questions.${index}.type`) === 'select' || 
+                      watch(`questions.${index}.type`) === 'checkbox') && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          Options *
+                        </label>
+                        {[0, 1, 2, 3].map((optIndex) => (
+                          <div key={optIndex} className="mb-2">
+                            <Input
+                              {...register(`questions.${index}.options.${optIndex}`, { 
+                                required: watch(`questions.${index}.type`) !== 'checkbox' || optIndex < 2 ? 'Option is required' : false
+                              })}
+                              placeholder={`Option ${optIndex + 1}`}
+                              className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Correct Answer *
-                      </label>
-                      <select
-                        {...register(`questions.${index}.correctAnswer`, { required: 'Correct answer is required' })}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-                      >
-                        <option value="">Select correct answer</option>
-                        {[0, 1, 2, 3].map((optIndex) => {
-                          const optionText = watch(`questions.${index}.options.${optIndex}`)
-                          return (
-                            <option key={optIndex} value={optionText || `Option ${optIndex + 1}`}>
-                              {optionText || `Option ${optIndex + 1}`} {optionText ? '(Option ' + (optIndex + 1) + ')' : ''}
-                            </option>
-                          )
-                        })}
-                      </select>
-                      <p className="mt-1 text-xs text-gray-600">
-                        Select which option is the correct answer. The correct answer must match one of the option texts above.
-                      </p>
-                    </div>
+                    {/* Correct Answer for multiple-choice, select, text, textarea */}
+                    {(watch(`questions.${index}.type`) === 'multiple-choice' || 
+                      watch(`questions.${index}.type`) === 'select' || 
+                      watch(`questions.${index}.type`) === 'text' || 
+                      watch(`questions.${index}.type`) === 'textarea') && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          Correct Answer *
+                        </label>
+                        {watch(`questions.${index}.type`) === 'multiple-choice' || watch(`questions.${index}.type`) === 'select' ? (
+                          <>
+                            <select
+                              {...register(`questions.${index}.correctAnswer`, { required: 'Correct answer is required' })}
+                              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            >
+                              <option value="">Select correct answer</option>
+                              {[0, 1, 2, 3].map((optIndex) => {
+                                const optionText = watch(`questions.${index}.options.${optIndex}`)
+                                return (
+                                  <option key={optIndex} value={optionText || `Option ${optIndex + 1}`}>
+                                    {optionText || `Option ${optIndex + 1}`} {optionText ? '(Option ' + (optIndex + 1) + ')' : ''}
+                                  </option>
+                                )
+                              })}
+                            </select>
+                            <p className="mt-1 text-xs text-gray-600">
+                              Select which option is the correct answer.
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <Input
+                              {...register(`questions.${index}.correctAnswer`, { required: 'Correct answer is required' })}
+                              placeholder="Enter the expected answer (for manual grading reference)"
+                              className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                            />
+                            <p className="mt-1 text-xs text-gray-600">
+                              This answer will be used as a reference for manual grading.
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Correct Answers for checkbox */}
+                    {watch(`questions.${index}.type`) === 'checkbox' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          Correct Answers * (Select all that apply)
+                        </label>
+                        <div className="space-y-2">
+                          {[0, 1, 2, 3].map((optIndex) => {
+                            const optionText = watch(`questions.${index}.options.${optIndex}`)
+                            const currentAnswers = watch(`questions.${index}.correctAnswers`) || []
+                            const isEmpty = !optionText || optionText.trim() === ''
+                            
+                            return (
+                              <label 
+                                key={optIndex} 
+                                className={`flex items-center space-x-2 ${isEmpty ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={!isEmpty && Array.isArray(currentAnswers) && currentAnswers.includes(optionText)}
+                                  disabled={isEmpty}
+                                  onChange={(e) => {
+                                    if (isEmpty) return
+                                    const current = watch(`questions.${index}.correctAnswers`) || []
+                                    const newAnswers = e.target.checked
+                                      ? [...(Array.isArray(current) ? current : []), optionText]
+                                      : (Array.isArray(current) ? current.filter((a: string) => a !== optionText) : [])
+                                    setValue(`questions.${index}.correctAnswers`, newAnswers)
+                                  }}
+                                  className="rounded border-gray-300 bg-white text-gray-900 focus:ring-red-500 disabled:opacity-50"
+                                />
+                                <span className={`text-gray-900 ${isEmpty ? 'text-gray-400' : ''}`}>
+                                  {optionText || `Option ${optIndex + 1} (fill in option above first)`}
+                                </span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                        <p className="mt-1 text-xs text-gray-600">
+                          Select all options that are correct answers. Fill in the options above first.
+                        </p>
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-2">

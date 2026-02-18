@@ -15,7 +15,8 @@ import {
   GraduationCap,
   Tag,
   Bell,
-  Receipt
+  Receipt,
+  ClipboardCheck
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -59,6 +60,11 @@ const menuItems = [
     title: "Transactions",
     url: "/admin/transactions",
     icon: Receipt,
+  },
+  {
+    title: "Quiz Grading",
+    url: "/admin/quizzes/grading",
+    icon: ClipboardCheck,
   },
   {
     title: "Notifications",
