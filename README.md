@@ -148,17 +148,29 @@ client/
 
 ### Quiz System
 - **Multiple Question Types**:
-  - Multiple Choice (auto-graded)
-  - Text (manual grading)
-  - Textarea (manual grading)
-  - Select/Dropdown (auto-graded)
-  - Checkbox (auto-graded, multiple correct answers)
+  - **Multiple Choice** (auto-graded): Single correct answer from multiple options
+  - **Text** (manual grading): Short text answer requiring admin review
+  - **Textarea** (manual grading): Longer text response requiring admin review
+  - **Select/Dropdown** (auto-graded): Single selection from dropdown menu
+  - **Checkbox** (auto-graded): Multiple correct answers, exact match required
 - **Auto-Grading**: Automatic scoring for multiple-choice, select, and checkbox questions
 - **Manual Grading**: Admin interface for grading text and textarea questions
-- **Quiz Management**: Create, edit, and organize quizzes with flexible question types
-- **Quiz Attempts**: Track user attempts, scores, and completion status
-- **Admin Grading Dashboard**: Dedicated interface for manually grading quiz submissions
-- **Progress Integration**: Quizzes can be inserted between lessons in course flow
+- **Quiz Management**: 
+  - Create and edit quizzes with flexible question types
+  - Set time limits, passing scores, and max attempts
+  - Organize questions with explanations
+- **Quiz Attempts**: 
+  - Track user attempts, scores, and completion status
+  - View previous quiz results
+  - Retake quizzes (up to max attempts)
+- **Admin Grading Dashboard**: 
+  - Dedicated interface for manually grading quiz submissions
+  - View student answers and expected answers
+  - Update scores after manual grading
+- **Progress Integration**: 
+  - Quizzes can be inserted between lessons in course flow
+  - Unified content ordering (lessons and quizzes together)
+  - Seamless navigation between lessons and quizzes
 
 ### Book Library
 - Browse Islamic books

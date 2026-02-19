@@ -63,7 +63,7 @@ export default function CourseLearnPage() {
   const [currentQuiz, setCurrentQuiz] = useState<any>(null)
   const [showQuiz, setShowQuiz] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(true)
-  const [quizAnswers, setQuizAnswers] = useState<{ [key: number]: string }>({})
+  const [quizAnswers, setQuizAnswers] = useState<{ [key: number]: string | string[] }>({})
   const [quizResults, setQuizResults] = useState<any>(null)
   const [submittingQuiz, setSubmittingQuiz] = useState(false)
   const [previousAttempt, setPreviousAttempt] = useState<any>(null)
@@ -770,17 +770,26 @@ export default function CourseLearnPage() {
                         <div className="space-y-4">
                           <h4 className="font-semibold text-lg">Review Your Answers:</h4>
                           {currentQuiz.questions.map((question: any, index: number) => {
-                            const selectedIndex = quizAnswers[index]
-                            const userAnswerText = selectedIndex !== undefined ? question.options[selectedIndex] : ''
-                            const correctAnswer = question.correctAnswer
-                            const isCorrect = userAnswerText === correctAnswer
+                            const questionType = question.type || 'multiple-choice'
                             const resultAnswer = quizResults.answers.find((a: any) => 
-                              a.questionId === question._id
+                              a.questionId === question._id || a.questionId?.toString() === question._id?.toString()
                             )
+                            const userAnswer = resultAnswer?.selectedAnswer || quizAnswers[index]
+                            const isCorrect = resultAnswer?.isCorrect || false
+                            const correctAnswer = question.correctAnswer
+                            const correctAnswers = question.correctAnswers || []
+
+                            // Format user answer for display
+                            let userAnswerText = ''
+                            if (Array.isArray(userAnswer)) {
+                              userAnswerText = userAnswer.join(', ')
+                            } else {
+                              userAnswerText = userAnswer || ''
+                            }
 
                             return (
                               <div 
-                                key={question._id} 
+                                key={question._id || index} 
                                 className={`border rounded-lg p-4 ${
                                   isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                                 }`}
@@ -795,33 +804,58 @@ export default function CourseLearnPage() {
                                     <span className="text-red-600 font-semibold">✗ Incorrect</span>
                                   )}
                                 </div>
-                                <div className="space-y-2 mt-3">
-                                  {question.options.map((option: string, optionIndex: number) => {
-                                    const isSelected = selectedIndex === optionIndex.toString()
-                                    const isCorrectOption = option === correctAnswer
-                                    
-                                    return (
-                                      <div
-                                        key={optionIndex}
-                                        className={`p-2 rounded ${
-                                          isCorrectOption
-                                            ? 'bg-green-100 border border-green-300'
-                                            : isSelected && !isCorrectOption
-                                            ? 'bg-red-100 border border-red-300'
-                                            : 'bg-gray-50'
-                                        }`}
-                                      >
-                                        <span className="text-gray-700">{option}</span>
-                                        {isCorrectOption && (
-                                          <span className="ml-2 text-green-600 font-semibold">(Correct Answer)</span>
-                                        )}
-                                        {isSelected && !isCorrectOption && (
-                                          <span className="ml-2 text-red-600 font-semibold">(Your Answer)</span>
-                                        )}
+                                
+                                {/* Display for questions with options (multiple-choice, select, checkbox) */}
+                                {(questionType === 'multiple-choice' || questionType === 'select' || questionType === 'checkbox') && question.options && question.options.length > 0 ? (
+                                  <div className="space-y-2 mt-3">
+                                    {question.options.map((option: string, optionIndex: number) => {
+                                      const isSelected = Array.isArray(userAnswer) 
+                                        ? userAnswer.includes(option)
+                                        : userAnswer === option
+                                      const isCorrectOption = questionType === 'checkbox'
+                                        ? correctAnswers.includes(option)
+                                        : option === correctAnswer
+                                      
+                                      return (
+                                        <div
+                                          key={optionIndex}
+                                          className={`p-2 rounded ${
+                                            isCorrectOption
+                                              ? 'bg-green-100 border border-green-300'
+                                              : isSelected && !isCorrectOption
+                                              ? 'bg-red-100 border border-red-300'
+                                              : 'bg-gray-50'
+                                          }`}
+                                        >
+                                          <span className="text-gray-700">{option}</span>
+                                          {isCorrectOption && (
+                                            <span className="ml-2 text-green-600 font-semibold">(Correct Answer)</span>
+                                          )}
+                                          {isSelected && !isCorrectOption && (
+                                            <span className="ml-2 text-red-600 font-semibold">(Your Answer)</span>
+                                          )}
+                                          {isSelected && isCorrectOption && (
+                                            <span className="ml-2 text-green-600 font-semibold">(Your Answer)</span>
+                                          )}
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                ) : (
+                                  /* Display for text/textarea questions */
+                                  <div className="space-y-2 mt-3">
+                                    <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                                      <p className="text-sm font-medium text-gray-700 mb-1">Your Answer:</p>
+                                      <p className="text-gray-900">{userAnswerText || 'No answer provided'}</p>
+                                    </div>
+                                    {correctAnswer && (
+                                      <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                                        <p className="text-sm font-medium text-gray-700 mb-1">Expected Answer:</p>
+                                        <p className="text-gray-900">{correctAnswer}</p>
                                       </div>
-                                    )
-                                  })}
-                                </div>
+                                    )}
+                                  </div>
+                                )}
                                 {question.explanation && (
                                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
                                     <p className="text-sm text-blue-800">
