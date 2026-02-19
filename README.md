@@ -5,10 +5,11 @@ Frontend application for NOI LMS (Islamic Learning Management System) - A modern
 ## Features
 
 - 🎓 **Course Management** - Browse, enroll, and learn from Islamic courses
+- 📝 **Advanced Quiz System** - Multiple question types with auto and manual grading
 - 📚 **Book Library** - Access a comprehensive collection of Islamic books
 - ✍️ **Blog System** - Read and explore Islamic articles and content
 - 👤 **User Authentication** - Secure login and registration system
-- 👨‍💼 **Admin Dashboard** - Manage courses, books, blogs, and users
+- 👨‍💼 **Admin Dashboard** - Manage courses, books, blogs, users, and quizzes
 - 📱 **Responsive Design** - Mobile-friendly interface built with Tailwind CSS
 - 🎨 **Modern UI** - Beautiful components using Radix UI and shadcn/ui
 
@@ -94,6 +95,18 @@ client/
 │   ├── blogs/            # Blog listing and pages
 │   ├── books/            # Book library pages
 │   ├── courses/          # Course pages and learning
+│   │   └── [id]/
+│   │       ├── learn/    # Course learning interface with quizzes
+│   │       └── page.tsx  # Course detail page
+│   ├── admin/
+│   │   ├── courses/      # Course management
+│   │   │   └── [id]/
+│   │   │       ├── quizzes/        # Quiz management
+│   │   │       │   ├── new/        # Create new quiz
+│   │   │       │   └── [quizId]/edit/  # Edit quiz
+│   │   │       └── content-order/  # Arrange lessons and quizzes
+│   │   └── quizzes/
+│   │       └── grading/  # Manual quiz grading interface
 │   ├── login/            # Login page
 │   ├── register/         # Registration page
 │   ├── profile/          # User profile page
@@ -130,6 +143,22 @@ client/
 - Course details and enrollment
 - Interactive learning interface
 - Progress tracking
+- Unified content ordering (lessons and quizzes)
+- Rich lesson content with text, images, and videos
+
+### Quiz System
+- **Multiple Question Types**:
+  - Multiple Choice (auto-graded)
+  - Text (manual grading)
+  - Textarea (manual grading)
+  - Select/Dropdown (auto-graded)
+  - Checkbox (auto-graded, multiple correct answers)
+- **Auto-Grading**: Automatic scoring for multiple-choice, select, and checkbox questions
+- **Manual Grading**: Admin interface for grading text and textarea questions
+- **Quiz Management**: Create, edit, and organize quizzes with flexible question types
+- **Quiz Attempts**: Track user attempts, scores, and completion status
+- **Admin Grading Dashboard**: Dedicated interface for manually grading quiz submissions
+- **Progress Integration**: Quizzes can be inserted between lessons in course flow
 
 ### Book Library
 - Browse Islamic books
@@ -143,9 +172,14 @@ client/
 
 ### Admin Dashboard
 - Manage courses, lessons, and quizzes
+- **Quiz Creation & Editing**: Create quizzes with multiple question types
+- **Quiz Grading**: Manual grading interface for text/textarea questions
+- **Content Ordering**: Drag-and-drop interface to arrange lessons and quizzes
+- **Lesson Content Blocks**: Rich content editor with text, images, and videos
 - Book management
 - Blog management
 - User management and roles
+- Transaction management
 
 ## Environment Variables
 
