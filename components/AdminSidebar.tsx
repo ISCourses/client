@@ -16,7 +16,8 @@ import {
   Tag,
   Bell,
   Receipt,
-  ClipboardCheck
+  ClipboardCheck,
+  LayoutTemplate
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -40,6 +41,11 @@ const menuItems = [
     title: "Blogs",
     url: "/admin/blogs",
     icon: FileText,
+  },
+  {
+    title: "Site pages",
+    url: "/admin/cms-pages",
+    icon: LayoutTemplate,
   },
   {
     title: "Users",

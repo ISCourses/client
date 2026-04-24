@@ -79,3 +79,27 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* react-quill — CMS page editor (admin) */
+.cms-html-editor .ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+.cms-html-editor .ql-container.ql-snow {
+  border: none;
+  font-size: 1rem;
+}
+.cms-html-editor .ql-editor {
+  min-height: 280px;
+  max-height: min(560px, 70vh);
+  overflow-y: auto;
+  line-height: 1.6;
+}
+.cms-html-editor .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+}
+.cms-html-editor .ql-snow .ql-picker {
+  color: #374151;
+}

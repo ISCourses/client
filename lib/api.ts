@@ -32,7 +32,7 @@ api.interceptors.request.use(
           config.headers.Authorization = `Bearer ${token}`
         } else {
           // Log warning if token is missing for protected routes (helpful for debugging)
-          const protectedRoutes = ['/users/profile', '/auth/me', '/users', '/courses/admin', '/blogs/admin', '/books/admin']
+          const protectedRoutes = ['/users/profile', '/auth/me', '/users', '/courses/admin', '/blogs/admin', '/books/admin', '/cms-pages/admin', '/upload/']
           if (protectedRoutes.some(route => config.url?.includes(route))) {
             console.warn('Token not found in cookies for protected route:', config.url)
             console.warn('Available cookies:', typeof document !== 'undefined' ? document.cookie : 'N/A')
@@ -73,7 +73,9 @@ api.interceptors.response.use(
         '/blogs/admin/all',    // Admin blogs endpoint
         '/books/admin/all',    // Admin books endpoint
         '/settings/admin/all', // Admin settings endpoint
-        '/categories/admin/all' // Admin categories endpoint
+        '/categories/admin/all', // Admin categories endpoint
+        '/upload/', // Image/file uploads (admin)
+        '/cms-pages/admin' // CMS pages (admin)
       ]
       const isProtectedEndpoint = protectedEndpoints.some(endpoint => url.includes(endpoint))
       

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import 'react-quill/dist/quill.snow.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { PublicSettingsProvider } from '@/contexts/PublicSettingsContext'
 import { Toaster } from 'react-hot-toast'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -20,8 +22,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          {children}
-          <Toaster position="top-right" />
+          <PublicSettingsProvider>
+            {children}
+            <Toaster position="top-right" />
+          </PublicSettingsProvider>
         </AuthProvider>
       </body>
     </html>
