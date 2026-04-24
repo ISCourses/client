@@ -1,10 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, BookOpen, Users, Award, Star, Heart } from 'lucide-react'
-import api from '@/lib/api'
+import { ArrowRight, BookOpen, Star, Heart } from 'lucide-react'
 
 interface HomepageContent {
   heroTitle: string
@@ -12,27 +10,13 @@ interface HomepageContent {
   heroImage: string
 }
 
-export default function Hero() {
-  const [content, setContent] = useState<HomepageContent | null>(null)
-  const [loading, setLoading] = useState(true)
+interface HeroProps {
+  /** CMS fields from API; missing keys use built-in fallbacks */
+  initialContent?: Partial<HomepageContent> | null
+}
 
-  useEffect(() => {
-    fetchSettings()
-  }, [])
-
-  const fetchSettings = async () => {
-    try {
-      const response = await api.get('/settings')
-      if (response.data.homepageContent) {
-        setContent(response.data.homepageContent)
-      }
-    } catch (error) {
-      console.error('Failed to fetch settings:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
+export default function Hero({ initialContent }: HeroProps) {
+  const content = initialContent
   const heroTitle = content?.heroTitle || 'Seek Knowledge, Seek Islam'
   const heroDescription = content?.heroDescription || '"Seek knowledge from the cradle to the grave" - Prophet Muhammad (PBUH). Discover authentic Islamic courses, books, and resources to strengthen your faith and understanding.'
   const heroImage = content?.heroImage
@@ -56,7 +40,7 @@ export default function Hero() {
             {heroTitle.split(',')[0]}
             {heroTitle.includes(',') && <span className="text-red-600">, {heroTitle.split(',').slice(1).join(',')}</span>}
           </h1>
-          <p className={`text-xl mb-8 max-w-3xl mx-auto ${heroImage ? 'text-white' : 'text-gray-600'}`}>
+          <p className={`text-xl mb-8 max-w-3xl mx-auto ${heroImage ? 'text-white' : 'text-gray-700'}`}>
             {heroDescription}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

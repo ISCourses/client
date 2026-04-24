@@ -7,11 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Save, Loader2, Upload, X, Eye } from 'lucide-react'
+import { Save, Loader2, Upload, X, Eye, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import AdminSidebar from '@/components/AdminSidebar'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
+import { cmsPagePath } from '@/lib/cms'
 
 interface Settings {
   siteName: string
@@ -80,12 +81,38 @@ interface Settings {
     refundPolicy: string
     cookiePolicy: string
   }
+  navMenu: {
+    label: string
+    href: string
+    order: number
+    openInNewTab: boolean
+  }[]
+  footerSettings: {
+    quickLinksTitle: string
+    supportTitle: string
+    quickLinks: { label: string; href: string; order: number }[]
+    supportLinks: { label: string; href: string; order: number }[]
+    copyrightLine: string
+  }
   homepageContent: {
     aboutUs: string
     contactContent: string
     heroTitle: string
     heroDescription: string
     heroImage: string
+    carouselSlides: {
+      imageUrl: string
+      title: string
+      subtitle: string
+      linkLabel: string
+      linkHref: string
+      order: number
+    }[]
+    additionalSections: {
+      title: string
+      bodyHtml: string
+      order: number
+    }[]
   }
   maintenanceMode: {
     enabled: boolean
@@ -107,6 +134,10 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false)
+  const [uploadingCarouselIndex, setUploadingCarouselIndex] = useState<number | null>(null)
+  const [cmsPublishedPages, setCmsPublishedPages] = useState<{ title: string; slug: string }[]>([])
+  const [cmsAddSlug, setCmsAddSlug] = useState('')
+  const [cmsAddTarget, setCmsAddTarget] = useState<'nav' | 'quick' | 'support'>('nav')
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'admin')) {
@@ -118,6 +149,17 @@ export default function AdminSettingsPage() {
     if (user?.role === 'admin') {
       fetchSettings()
     }
+  }, [user])
+
+  useEffect(() => {
+    if (user?.role !== 'admin') return
+    api
+      .get('/cms-pages/admin/all')
+      .then((res) => {
+        const list = (res.data || []).filter((p: { published?: boolean; archived?: boolean }) => p.published && !p.archived)
+        setCmsPublishedPages(list.map((p: { title: string; slug: string }) => ({ title: p.title, slug: p.slug })))
+      })
+      .catch(() => setCmsPublishedPages([]))
   }, [user])
 
   const fetchSettings = async () => {
@@ -203,12 +245,56 @@ export default function AdminSettingsPage() {
           minPasswordLength: data.registrationSettings?.minPasswordLength || 6,
           requireStrongPassword: data.registrationSettings?.requireStrongPassword || false
         },
+        navMenu: Array.isArray(data.navMenu)
+          ? data.navMenu.map((item: any, i: number) => ({
+              label: item.label || '',
+              href: item.href || '',
+              order: typeof item.order === 'number' ? item.order : i,
+              openInNewTab: !!item.openInNewTab
+            }))
+          : [],
+        footerSettings: {
+          quickLinksTitle: data.footerSettings?.quickLinksTitle || 'Quick Links',
+          supportTitle: data.footerSettings?.supportTitle || 'Support',
+          quickLinks: Array.isArray(data.footerSettings?.quickLinks)
+            ? data.footerSettings.quickLinks.map((item: any, i: number) => ({
+                label: item.label || '',
+                href: item.href || '',
+                order: typeof item.order === 'number' ? item.order : i
+              }))
+            : [],
+          supportLinks: Array.isArray(data.footerSettings?.supportLinks)
+            ? data.footerSettings.supportLinks.map((item: any, i: number) => ({
+                label: item.label || '',
+                href: item.href || '',
+                order: typeof item.order === 'number' ? item.order : i
+              }))
+            : [],
+          copyrightLine: data.footerSettings?.copyrightLine || ''
+        },
         homepageContent: {
           aboutUs: data.homepageContent?.aboutUs || '',
           contactContent: data.homepageContent?.contactContent || '',
           heroTitle: data.homepageContent?.heroTitle || 'Welcome to NOI LMS',
           heroDescription: data.homepageContent?.heroDescription || 'Your gateway to Islamic learning',
-          heroImage: data.homepageContent?.heroImage || ''
+          heroImage: data.homepageContent?.heroImage || '',
+          carouselSlides: Array.isArray(data.homepageContent?.carouselSlides)
+            ? data.homepageContent.carouselSlides.map((s: any, i: number) => ({
+                imageUrl: s.imageUrl || '',
+                title: s.title || '',
+                subtitle: s.subtitle || '',
+                linkLabel: s.linkLabel || '',
+                linkHref: s.linkHref || '',
+                order: typeof s.order === 'number' ? s.order : i
+              }))
+            : [],
+          additionalSections: Array.isArray(data.homepageContent?.additionalSections)
+            ? data.homepageContent.additionalSections.map((s: any, i: number) => ({
+                title: s.title || '',
+                bodyHtml: s.bodyHtml || '',
+                order: typeof s.order === 'number' ? s.order : i
+              }))
+            : []
         }
       })
     } catch (error) {
@@ -296,6 +382,73 @@ export default function AdminSettingsPage() {
     }
   }
 
+  const handleCarouselImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingCarouselIndex(index)
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await api.post('/upload/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      const slides = [...(settings?.homepageContent?.carouselSlides || [])]
+      while (slides.length <= index) {
+        slides.push({
+          imageUrl: '',
+          title: '',
+          subtitle: '',
+          linkLabel: '',
+          linkHref: '',
+          order: slides.length
+        })
+      }
+      slides[index] = { ...slides[index], imageUrl: response.data.url, order: index }
+      updateField('homepageContent.carouselSlides', slides)
+      toast.success('Slide image uploaded')
+    } catch (error: any) {
+      console.error('Carousel upload error:', error)
+      toast.error(error.response?.data?.message || 'Failed to upload image')
+    } finally {
+      setUploadingCarouselIndex(null)
+      e.target.value = ''
+    }
+  }
+
+  const reorderArray = <T,>(arr: T[], from: number, to: number): T[] => {
+    const next = [...arr]
+    const [removed] = next.splice(from, 1)
+    next.splice(to, 0, removed)
+    return next.map((item: any, i) => (typeof item === 'object' && item !== null ? { ...item, order: i } : item))
+  }
+
+  const addCmsPageToNavigation = () => {
+    if (!settings) return
+    const page = cmsPublishedPages.find((p) => p.slug === cmsAddSlug)
+    if (!page) {
+      toast.error('Choose a published CMS page')
+      return
+    }
+    const href = cmsPagePath(page.slug)
+    if (cmsAddTarget === 'nav') {
+      const arr = [...(settings.navMenu || [])]
+      arr.push({ label: page.title, href, order: arr.length, openInNewTab: false })
+      updateField('navMenu', arr)
+    } else if (cmsAddTarget === 'quick') {
+      const arr = [...(settings.footerSettings?.quickLinks || [])]
+      arr.push({ label: page.title, href, order: arr.length })
+      updateField('footerSettings.quickLinks', arr)
+    } else {
+      const arr = [...(settings.footerSettings?.supportLinks || [])]
+      arr.push({ label: page.title, href, order: arr.length })
+      updateField('footerSettings.supportLinks', arr)
+    }
+    toast.success('Link added to this form — click Save All Settings below to apply.')
+  }
+
   if (loading || loadingSettings) {
     return (
       <div className="min-h-screen bg-white flex">
@@ -325,9 +478,10 @@ export default function AdminSettingsPage() {
         </div>
 
         <Tabs defaultValue="site" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="flex w-full flex-wrap gap-1">
             <TabsTrigger value="site">Site</TabsTrigger>
             <TabsTrigger value="homepage">Homepage</TabsTrigger>
+            <TabsTrigger value="layout">Menus &amp; footer</TabsTrigger>
             <TabsTrigger value="contact">Contact</TabsTrigger>
             <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="payment">Payment</TabsTrigger>
@@ -394,26 +548,25 @@ export default function AdminSettingsPage() {
                       id="logo-upload"
                       disabled={uploadingLogo}
                     />
-                    <label htmlFor="logo-upload">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full bg-white border-gray-300 text-gray-900 hover:bg-gray-100"
-                        disabled={uploadingLogo}
-                      >
-                        {uploadingLogo ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-4 w-4 mr-2" />
-                            {settings.siteLogo ? 'Change Logo' : 'Upload Logo'}
-                          </>
-                        )}
-                      </Button>
-                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full bg-white border-gray-300 text-gray-900 hover:bg-gray-100"
+                      disabled={uploadingLogo}
+                      onClick={() => document.getElementById('logo-upload')?.click()}
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {settings.siteLogo ? 'Change Logo' : 'Upload Logo'}
+                        </>
+                      )}
+                    </Button>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -542,14 +695,127 @@ export default function AdminSettingsPage() {
                     id="hero-image-upload"
                     disabled={uploadingHeroImage}
                   />
-                  <label htmlFor="hero-image-upload">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-white border-gray-300 text-gray-900 hover:bg-gray-100"
+                    disabled={uploadingHeroImage}
+                    onClick={() => document.getElementById('hero-image-upload')?.click()}
+                  >
+                    {uploadingHeroImage ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        {settings.homepageContent?.heroImage ? 'Change Hero Image' : 'Upload Hero Image'}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-gray-900">Homepage carousel</CardTitle>
+                <CardDescription className="text-gray-600">
+                  If you add at least one slide with an image, the homepage shows this carousel instead of the hero section above.
+                  Remove all slide images to use the static hero again.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {(settings.homepageContent?.carouselSlides?.length
+                  ? settings.homepageContent.carouselSlides
+                  : []
+                ).map((slide, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50/50"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-gray-900">Slide {index + 1}</span>
+                      <div className="flex gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const arr = settings.homepageContent?.carouselSlides || []
+                            updateField('homepageContent.carouselSlides', reorderArray(arr, index, index - 1))
+                          }}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={index >= (settings.homepageContent?.carouselSlides?.length || 0) - 1}
+                          onClick={() => {
+                            const arr = settings.homepageContent?.carouselSlides || []
+                            updateField('homepageContent.carouselSlides', reorderArray(arr, index, index + 1))
+                          }}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600"
+                          onClick={() => {
+                            const arr = [...(settings.homepageContent?.carouselSlides || [])]
+                            arr.splice(index, 1)
+                            updateField(
+                              'homepageContent.carouselSlides',
+                              arr.map((s, i) => ({ ...s, order: i }))
+                            )
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {slide.imageUrl && (
+                      <div className="relative rounded-md overflow-hidden max-h-48">
+                        <img src={slide.imageUrl} alt="" className="w-full h-40 object-cover" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="absolute top-2 right-2 bg-white"
+                          onClick={() => {
+                            const arr = [...(settings.homepageContent?.carouselSlides || [])]
+                            arr[index] = { ...arr[index], imageUrl: '' }
+                            updateField('homepageContent.carouselSlides', arr)
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id={`carousel-upload-${index}`}
+                      disabled={uploadingCarouselIndex === index}
+                      onChange={(e) => handleCarouselImageUpload(index, e)}
+                    />
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full bg-white border-gray-300 text-gray-900 hover:bg-gray-100"
-                      disabled={uploadingHeroImage}
+                      className="w-full sm:w-auto bg-white border-gray-300"
+                      disabled={uploadingCarouselIndex === index}
+                      onClick={() =>
+                        document.getElementById(`carousel-upload-${index}`)?.click()
+                      }
                     >
-                      {uploadingHeroImage ? (
+                      {uploadingCarouselIndex === index ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Uploading...
@@ -557,12 +823,186 @@ export default function AdminSettingsPage() {
                       ) : (
                         <>
                           <Upload className="h-4 w-4 mr-2" />
-                          {settings.homepageContent?.heroImage ? 'Change Hero Image' : 'Upload Hero Image'}
+                          {slide.imageUrl ? 'Change image' : 'Upload image'}
                         </>
                       )}
                     </Button>
-                  </label>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Title (optional)</label>
+                        <Input
+                          value={slide.title || ''}
+                          onChange={(e) => {
+                            const arr = [...(settings.homepageContent?.carouselSlides || [])]
+                            arr[index] = { ...arr[index], title: e.target.value }
+                            updateField('homepageContent.carouselSlides', arr)
+                          }}
+                          className="bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Subtitle (optional)</label>
+                        <Input
+                          value={slide.subtitle || ''}
+                          onChange={(e) => {
+                            const arr = [...(settings.homepageContent?.carouselSlides || [])]
+                            arr[index] = { ...arr[index], subtitle: e.target.value }
+                            updateField('homepageContent.carouselSlides', arr)
+                          }}
+                          className="bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Button label (optional)</label>
+                        <Input
+                          value={slide.linkLabel || ''}
+                          onChange={(e) => {
+                            const arr = [...(settings.homepageContent?.carouselSlides || [])]
+                            arr[index] = { ...arr[index], linkLabel: e.target.value }
+                            updateField('homepageContent.carouselSlides', arr)
+                          }}
+                          className="bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Button link (optional)</label>
+                        <Input
+                          value={slide.linkHref || ''}
+                          onChange={(e) => {
+                            const arr = [...(settings.homepageContent?.carouselSlides || [])]
+                            arr[index] = { ...arr[index], linkHref: e.target.value }
+                            updateField('homepageContent.carouselSlides', arr)
+                          }}
+                          placeholder="/courses"
+                          className="bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-dashed"
+                  onClick={() => {
+                    const arr = [...(settings.homepageContent?.carouselSlides || [])]
+                    arr.push({
+                      imageUrl: '',
+                      title: '',
+                      subtitle: '',
+                      linkLabel: '',
+                      linkHref: '',
+                      order: arr.length
+                    })
+                    updateField('homepageContent.carouselSlides', arr)
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add carousel slide
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-gray-900">Extra homepage sections</CardTitle>
+                <CardDescription className="text-gray-600">
+                  Optional content blocks shown after About Us and Contact. Plain text and line breaks are supported.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {(settings.homepageContent?.additionalSections?.length
+                  ? settings.homepageContent.additionalSections
+                  : []
+                ).map((section, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-gray-900">Section {index + 1}</span>
+                      <div className="flex gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const arr = settings.homepageContent?.additionalSections || []
+                            updateField('homepageContent.additionalSections', reorderArray(arr, index, index - 1))
+                          }}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={
+                            index >= (settings.homepageContent?.additionalSections?.length || 0) - 1
+                          }
+                          onClick={() => {
+                            const arr = settings.homepageContent?.additionalSections || []
+                            updateField('homepageContent.additionalSections', reorderArray(arr, index, index + 1))
+                          }}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600"
+                          onClick={() => {
+                            const arr = [...(settings.homepageContent?.additionalSections || [])]
+                            arr.splice(index, 1)
+                            updateField(
+                              'homepageContent.additionalSections',
+                              arr.map((s, i) => ({ ...s, order: i }))
+                            )
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Section title</label>
+                      <Input
+                        value={section.title || ''}
+                        onChange={(e) => {
+                          const arr = [...(settings.homepageContent?.additionalSections || [])]
+                          arr[index] = { ...arr[index], title: e.target.value }
+                          updateField('homepageContent.additionalSections', arr)
+                        }}
+                        className="bg-white border-gray-300 text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Content</label>
+                      <textarea
+                        value={section.bodyHtml || ''}
+                        onChange={(e) => {
+                          const arr = [...(settings.homepageContent?.additionalSections || [])]
+                          arr[index] = { ...arr[index], bodyHtml: e.target.value }
+                          updateField('homepageContent.additionalSections', arr)
+                        }}
+                        rows={6}
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900"
+                      />
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-dashed"
+                  onClick={() => {
+                    const arr = [...(settings.homepageContent?.additionalSections || [])]
+                    arr.push({ title: '', bodyHtml: '', order: arr.length })
+                    updateField('homepageContent.additionalSections', arr)
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add section
+                </Button>
               </CardContent>
             </Card>
 
@@ -632,6 +1072,403 @@ export default function AdminSettingsPage() {
                     rows={8}
                     className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400"
                     placeholder="Enter Terms of Service content..."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="layout" className="space-y-6">
+            <Card className="bg-white border-gray-200 border-l-4 border-l-red-500">
+              <CardHeader>
+                <CardTitle className="text-gray-900">Add CMS page to menu or footer</CardTitle>
+                <CardDescription className="text-gray-600">
+                  Published site pages live at <code className="text-xs bg-gray-100 px-1 rounded">/p/your-slug</code>.
+                  Manage pages in{' '}
+                  <Link href="/admin/cms-pages" className="text-red-600 font-medium hover:underline">
+                    Site pages (CMS)
+                  </Link>
+                  . Links you add here are merged into the fields below — save settings when done.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col md:flex-row md:flex-wrap gap-4 md:items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Published page</label>
+                  <select
+                    className="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900"
+                    value={cmsAddSlug}
+                    onChange={(e) => setCmsAddSlug(e.target.value)}
+                  >
+                    <option value="">Select a page…</option>
+                    {cmsPublishedPages.map((p) => (
+                      <option key={p.slug} value={p.slug}>
+                        {p.title}
+                      </option>
+                    ))}
+                  </select>
+                  {cmsPublishedPages.length === 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      No published pages yet.{' '}
+                      <Link href="/admin/cms-pages/new" className="text-red-600 hover:underline">
+                        Create one
+                      </Link>
+                    </p>
+                  )}
+                </div>
+                <div className="w-full md:w-56">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Add to</label>
+                  <select
+                    className="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900"
+                    value={cmsAddTarget}
+                    onChange={(e) => setCmsAddTarget(e.target.value as 'nav' | 'quick' | 'support')}
+                  >
+                    <option value="nav">Main header menu</option>
+                    <option value="quick">Footer — quick links column</option>
+                    <option value="support">Footer — support column</option>
+                  </select>
+                </div>
+                <Button
+                  type="button"
+                  className="bg-red-600 text-white hover:bg-red-700"
+                  onClick={addCmsPageToNavigation}
+                  disabled={!cmsAddSlug}
+                >
+                  Add link
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-gray-900">Header menu</CardTitle>
+                <CardDescription className="text-gray-600">
+                  Links shown on every page next to the logo. Leave empty to use the default Courses, Books, and Blog links.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(settings.navMenu?.length ? settings.navMenu : []).map((item, index) => (
+                  <div key={index} className="flex flex-col gap-3 border border-gray-200 rounded-lg p-4 md:flex-row md:items-end">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Label</label>
+                        <Input
+                          value={item.label}
+                          onChange={(e) => {
+                            const arr = [...(settings.navMenu || [])]
+                            arr[index] = { ...arr[index], label: e.target.value }
+                            updateField('navMenu', arr)
+                          }}
+                          placeholder="Courses"
+                          className="bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">URL</label>
+                        <Input
+                          value={item.href}
+                          onChange={(e) => {
+                            const arr = [...(settings.navMenu || [])]
+                            arr[index] = { ...arr[index], href: e.target.value }
+                            updateField('navMenu', arr)
+                          }}
+                          placeholder="/courses"
+                          className="bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-2 text-sm text-gray-900">
+                        <input
+                          type="checkbox"
+                          checked={item.openInNewTab}
+                          onChange={(e) => {
+                            const arr = [...(settings.navMenu || [])]
+                            arr[index] = { ...arr[index], openInNewTab: e.target.checked }
+                            updateField('navMenu', arr)
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                        New tab
+                      </label>
+                      <div className="flex gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={index === 0}
+                          onClick={() =>
+                            updateField('navMenu', reorderArray(settings.navMenu || [], index, index - 1))
+                          }
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={index >= (settings.navMenu?.length || 0) - 1}
+                          onClick={() =>
+                            updateField('navMenu', reorderArray(settings.navMenu || [], index, index + 1))
+                          }
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600"
+                          onClick={() => {
+                            const arr = [...(settings.navMenu || [])]
+                            arr.splice(index, 1)
+                            updateField(
+                              'navMenu',
+                              arr.map((n, i) => ({ ...n, order: i }))
+                            )
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-dashed"
+                  onClick={() => {
+                    const arr = [...(settings.navMenu || [])]
+                    arr.push({ label: '', href: '', order: arr.length, openInNewTab: false })
+                    updateField('navMenu', arr)
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add menu item
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-gray-900">Footer</CardTitle>
+                <CardDescription className="text-gray-600">
+                  Customize footer columns and copyright. Leave link lists empty to use the built-in defaults.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Quick links column title</label>
+                    <Input
+                      value={settings.footerSettings?.quickLinksTitle || ''}
+                      onChange={(e) => updateField('footerSettings.quickLinksTitle', e.target.value)}
+                      className="bg-white border-gray-300 text-gray-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Support column title</label>
+                    <Input
+                      value={settings.footerSettings?.supportTitle || ''}
+                      onChange={(e) => updateField('footerSettings.supportTitle', e.target.value)}
+                      className="bg-white border-gray-300 text-gray-900"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Quick links</h4>
+                  <div className="space-y-3">
+                    {(settings.footerSettings?.quickLinks?.length
+                      ? settings.footerSettings.quickLinks
+                      : []
+                    ).map((item, index) => (
+                      <div key={index} className="flex flex-col gap-2 md:flex-row md:items-center border border-gray-100 rounded p-3">
+                        <Input
+                          value={item.label}
+                          onChange={(e) => {
+                            const arr = [...(settings.footerSettings?.quickLinks || [])]
+                            arr[index] = { ...arr[index], label: e.target.value }
+                            updateField('footerSettings.quickLinks', arr)
+                          }}
+                          placeholder="Label"
+                          className="bg-white border-gray-300 text-gray-900 md:flex-1"
+                        />
+                        <Input
+                          value={item.href}
+                          onChange={(e) => {
+                            const arr = [...(settings.footerSettings?.quickLinks || [])]
+                            arr[index] = { ...arr[index], href: e.target.value }
+                            updateField('footerSettings.quickLinks', arr)
+                          }}
+                          placeholder="/path"
+                          className="bg-white border-gray-300 text-gray-900 md:flex-1"
+                        />
+                        <div className="flex gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={index === 0}
+                            onClick={() =>
+                              updateField(
+                                'footerSettings.quickLinks',
+                                reorderArray(settings.footerSettings?.quickLinks || [], index, index - 1)
+                              )
+                            }
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={index >= (settings.footerSettings?.quickLinks?.length || 0) - 1}
+                            onClick={() =>
+                              updateField(
+                                'footerSettings.quickLinks',
+                                reorderArray(settings.footerSettings?.quickLinks || [], index, index + 1)
+                              )
+                            }
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600"
+                            onClick={() => {
+                              const arr = [...(settings.footerSettings?.quickLinks || [])]
+                              arr.splice(index, 1)
+                              updateField(
+                                'footerSettings.quickLinks',
+                                arr.map((n, i) => ({ ...n, order: i }))
+                              )
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const arr = [...(settings.footerSettings?.quickLinks || [])]
+                        arr.push({ label: '', href: '', order: arr.length })
+                        updateField('footerSettings.quickLinks', arr)
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add quick link
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Support links</h4>
+                  <div className="space-y-3">
+                    {(settings.footerSettings?.supportLinks?.length
+                      ? settings.footerSettings.supportLinks
+                      : []
+                    ).map((item, index) => (
+                      <div key={index} className="flex flex-col gap-2 md:flex-row md:items-center border border-gray-100 rounded p-3">
+                        <Input
+                          value={item.label}
+                          onChange={(e) => {
+                            const arr = [...(settings.footerSettings?.supportLinks || [])]
+                            arr[index] = { ...arr[index], label: e.target.value }
+                            updateField('footerSettings.supportLinks', arr)
+                          }}
+                          placeholder="Label"
+                          className="bg-white border-gray-300 text-gray-900 md:flex-1"
+                        />
+                        <Input
+                          value={item.href}
+                          onChange={(e) => {
+                            const arr = [...(settings.footerSettings?.supportLinks || [])]
+                            arr[index] = { ...arr[index], href: e.target.value }
+                            updateField('footerSettings.supportLinks', arr)
+                          }}
+                          placeholder="/path"
+                          className="bg-white border-gray-300 text-gray-900 md:flex-1"
+                        />
+                        <div className="flex gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={index === 0}
+                            onClick={() =>
+                              updateField(
+                                'footerSettings.supportLinks',
+                                reorderArray(settings.footerSettings?.supportLinks || [], index, index - 1)
+                              )
+                            }
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={index >= (settings.footerSettings?.supportLinks?.length || 0) - 1}
+                            onClick={() =>
+                              updateField(
+                                'footerSettings.supportLinks',
+                                reorderArray(settings.footerSettings?.supportLinks || [], index, index + 1)
+                              )
+                            }
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600"
+                            onClick={() => {
+                              const arr = [...(settings.footerSettings?.supportLinks || [])]
+                              arr.splice(index, 1)
+                              updateField(
+                                'footerSettings.supportLinks',
+                                arr.map((n, i) => ({ ...n, order: i }))
+                              )
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const arr = [...(settings.footerSettings?.supportLinks || [])]
+                        arr.push({ label: '', href: '', order: arr.length })
+                        updateField('footerSettings.supportLinks', arr)
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add support link
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Copyright line (optional — leave blank for default)
+                  </label>
+                  <Input
+                    value={settings.footerSettings?.copyrightLine || ''}
+                    onChange={(e) => updateField('footerSettings.copyrightLine', e.target.value)}
+                    placeholder={`© ${new Date().getFullYear()} ${settings.siteName || 'NOI LMS'}...`}
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
               </CardContent>
