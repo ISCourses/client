@@ -96,6 +96,10 @@
   overflow-y: auto;
   line-height: 1.6;
 }
+.cms-html-editor-compact .ql-editor {
+  min-height: 140px;
+  max-height: min(320px, 50vh);
+}
 .cms-html-editor .ql-editor.ql-blank::before {
   color: #9ca3af;
   font-style: normal;

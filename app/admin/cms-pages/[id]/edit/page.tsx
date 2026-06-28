@@ -12,13 +12,15 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
 import { cmsPagePath, normalizeCmsSlug } from '@/lib/cms'
-import CmsHtmlEditor from '@/components/admin/CmsHtmlEditor'
+import ContentBlockEditor from '@/components/admin/ContentBlockEditor'
+import { blocksToLegacyContent, ContentBlock, normalizeContentBlocks } from '@/lib/content-blocks'
 
 type CmsPage = {
   _id: string
   title: string
   slug: string
   bodyHtml: string
+  contentBlocks?: ContentBlock[]
   metaDescription: string
   published: boolean
   archived: boolean
@@ -36,7 +38,7 @@ export default function EditCmsPage() {
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [slugTouched, setSlugTouched] = useState(false)
-  const [bodyHtml, setBodyHtml] = useState('')
+  const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
   const [metaDescription, setMetaDescription] = useState('')
   const [published, setPublished] = useState(false)
 
@@ -58,7 +60,7 @@ export default function EditCmsPage() {
         setTitle(p.title)
         setSlug(p.slug)
         setSlugTouched(true)
-        setBodyHtml(p.bodyHtml || '')
+        setContentBlocks(normalizeContentBlocks(p.contentBlocks, p.bodyHtml))
         setMetaDescription(p.metaDescription || '')
         setPublished(!!p.published)
       } catch {
@@ -96,7 +98,8 @@ export default function EditCmsPage() {
       await api.put(`/cms-pages/admin/${id}`, {
         title: title.trim(),
         slug: s,
-        bodyHtml,
+        contentBlocks,
+        bodyHtml: blocksToLegacyContent(contentBlocks),
         metaDescription,
         published
       })
@@ -146,9 +149,7 @@ export default function EditCmsPage() {
             </Button>
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Edit page</h1>
-          <p className="text-gray-600 mt-1 font-mono text-sm">
-            {cmsPagePath(slug || page.slug)}
-          </p>
+          <p className="text-gray-600 mt-1 font-mono text-sm">{cmsPagePath(slug || page.slug)}</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-6">
@@ -162,12 +163,7 @@ export default function EditCmsPage() {
             <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">Title</label>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  onBlur={syncSlugFromTitle}
-                  className="bg-white border-gray-300"
-                />
+                <Input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={syncSlugFromTitle} className="bg-white border-gray-300" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">URL slug</label>
@@ -182,19 +178,10 @@ export default function EditCmsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">Meta description</label>
-                <Input
-                  value={metaDescription}
-                  onChange={(e) => setMetaDescription(e.target.value)}
-                  className="bg-white border-gray-300"
-                />
+                <Input value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} className="bg-white border-gray-300" />
               </div>
               <label className="flex items-center gap-2 text-sm text-gray-900">
-                <input
-                  type="checkbox"
-                  checked={published}
-                  onChange={(e) => setPublished(e.target.checked)}
-                  className="rounded border-gray-300"
-                />
+                <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} className="rounded border-gray-300" />
                 Published
               </label>
             </CardContent>
@@ -204,11 +191,11 @@ export default function EditCmsPage() {
             <CardHeader>
               <CardTitle className="text-gray-900">Page content</CardTitle>
               <CardDescription className="text-gray-600">
-                Rich editor — headings, lists, links, and formatting. Saved as HTML.
+                Add rich text, images, videos, buttons, and draggable sections with nested blocks.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CmsHtmlEditor value={bodyHtml} onChange={setBodyHtml} placeholder="Page body…" />
+              <ContentBlockEditor blocks={contentBlocks} onChange={setContentBlocks} />
             </CardContent>
           </Card>
 

@@ -47,6 +47,7 @@ export default function HomeCarousel({ slides }: HomeCarouselProps) {
   if (len === 0) return null
 
   const slide = sorted[index]
+  const hasText = !!(slide.title?.trim() || slide.subtitle?.trim())
 
   return (
     <section className="relative min-h-[420px] md:min-h-[520px] overflow-hidden bg-gray-900">
@@ -54,7 +55,7 @@ export default function HomeCarousel({ slides }: HomeCarouselProps) {
         className="absolute inset-0 bg-cover bg-center transition-all duration-700"
         style={{ backgroundImage: `url(${slide.imageUrl})` }}
       />
-      <div className="absolute inset-0 bg-black/50" />
+      {hasText && <div className="absolute inset-0 bg-black/50" />}
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[420px] md:min-h-[520px] flex flex-col items-center justify-center text-center py-16">
         {slide.title && (

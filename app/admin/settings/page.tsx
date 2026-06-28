@@ -86,6 +86,8 @@ interface Settings {
     href: string
     order: number
     openInNewTab: boolean
+    isDropdown?: boolean
+    children?: { label: string; href: string; order: number; openInNewTab: boolean }[]
   }[]
   footerSettings: {
     quickLinksTitle: string
@@ -250,7 +252,16 @@ export default function AdminSettingsPage() {
               label: item.label || '',
               href: item.href || '',
               order: typeof item.order === 'number' ? item.order : i,
-              openInNewTab: !!item.openInNewTab
+              openInNewTab: !!item.openInNewTab,
+              isDropdown: !!item.isDropdown,
+              children: Array.isArray(item.children)
+                ? item.children.map((c: any, ci: number) => ({
+                    label: c.label || '',
+                    href: c.href || '',
+                    order: typeof c.order === 'number' ? c.order : ci,
+                    openInNewTab: !!c.openInNewTab
+                  }))
+                : []
             }))
           : [],
         footerSettings: {
@@ -1142,95 +1153,144 @@ export default function AdminSettingsPage() {
               <CardHeader>
                 <CardTitle className="text-gray-900">Header menu</CardTitle>
                 <CardDescription className="text-gray-600">
-                  Links shown on every page next to the logo. Leave empty to use the default Courses, Books, and Blog links.
+                  Links shown on every page next to the logo. Use dropdown menus for grouped links. Leave empty to use the default Courses, Products, and Blog links.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(settings.navMenu?.length ? settings.navMenu : []).map((item, index) => (
-                  <div key={index} className="flex flex-col gap-3 border border-gray-200 rounded-lg p-4 md:flex-row md:items-end">
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Label</label>
-                        <Input
-                          value={item.label}
-                          onChange={(e) => {
-                            const arr = [...(settings.navMenu || [])]
-                            arr[index] = { ...arr[index], label: e.target.value }
-                            updateField('navMenu', arr)
-                          }}
-                          placeholder="Courses"
-                          className="bg-white border-gray-300 text-gray-900"
-                        />
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-end">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Label</label>
+                          <Input
+                            value={item.label}
+                            onChange={(e) => {
+                              const arr = [...(settings.navMenu || [])]
+                              arr[index] = { ...arr[index], label: e.target.value }
+                              updateField('navMenu', arr)
+                            }}
+                            placeholder="Courses"
+                            className="bg-white border-gray-300 text-gray-900"
+                          />
+                        </div>
+                        {!item.isDropdown && (
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">URL</label>
+                            <Input
+                              value={item.href}
+                              onChange={(e) => {
+                                const arr = [...(settings.navMenu || [])]
+                                arr[index] = { ...arr[index], href: e.target.value }
+                                updateField('navMenu', arr)
+                              }}
+                              placeholder="/courses"
+                              className="bg-white border-gray-300 text-gray-900"
+                            />
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">URL</label>
-                        <Input
-                          value={item.href}
-                          onChange={(e) => {
-                            const arr = [...(settings.navMenu || [])]
-                            arr[index] = { ...arr[index], href: e.target.value }
-                            updateField('navMenu', arr)
-                          }}
-                          placeholder="/courses"
-                          className="bg-white border-gray-300 text-gray-900"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <label className="flex items-center gap-2 text-sm text-gray-900">
-                        <input
-                          type="checkbox"
-                          checked={item.openInNewTab}
-                          onChange={(e) => {
-                            const arr = [...(settings.navMenu || [])]
-                            arr[index] = { ...arr[index], openInNewTab: e.target.checked }
-                            updateField('navMenu', arr)
-                          }}
-                          className="rounded border-gray-300"
-                        />
-                        New tab
-                      </label>
-                      <div className="flex gap-1">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={index === 0}
-                          onClick={() =>
-                            updateField('navMenu', reorderArray(settings.navMenu || [], index, index - 1))
-                          }
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={index >= (settings.navMenu?.length || 0) - 1}
-                          onClick={() =>
-                            updateField('navMenu', reorderArray(settings.navMenu || [], index, index + 1))
-                          }
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="text-red-600"
-                          onClick={() => {
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <label className="flex items-center gap-2 text-sm text-gray-900">
+                          <input
+                            type="checkbox"
+                            checked={!!item.isDropdown}
+                            onChange={(e) => {
+                              const arr = [...(settings.navMenu || [])]
+                              arr[index] = {
+                                ...arr[index],
+                                isDropdown: e.target.checked,
+                                href: e.target.checked ? '' : arr[index].href,
+                                children: e.target.checked ? (arr[index].children || []) : []
+                              }
+                              updateField('navMenu', arr)
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          Dropdown menu
+                        </label>
+                        {!item.isDropdown && (
+                          <label className="flex items-center gap-2 text-sm text-gray-900">
+                            <input
+                              type="checkbox"
+                              checked={item.openInNewTab}
+                              onChange={(e) => {
+                                const arr = [...(settings.navMenu || [])]
+                                arr[index] = { ...arr[index], openInNewTab: e.target.checked }
+                                updateField('navMenu', arr)
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            New tab
+                          </label>
+                        )}
+                        <div className="flex gap-1">
+                          <Button type="button" variant="outline" size="sm" disabled={index === 0} onClick={() => updateField('navMenu', reorderArray(settings.navMenu || [], index, index - 1))}>
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button type="button" variant="outline" size="sm" disabled={index >= (settings.navMenu?.length || 0) - 1} onClick={() => updateField('navMenu', reorderArray(settings.navMenu || [], index, index + 1))}>
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button type="button" variant="outline" size="sm" className="text-red-600" onClick={() => {
                             const arr = [...(settings.navMenu || [])]
                             arr.splice(index, 1)
-                            updateField(
-                              'navMenu',
-                              arr.map((n, i) => ({ ...n, order: i }))
-                            )
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                            updateField('navMenu', arr.map((n, i) => ({ ...n, order: i })))
+                          }}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
+                    {item.isDropdown && (
+                      <div className="pl-4 border-l-2 border-gray-200 space-y-2">
+                        <p className="text-xs font-medium text-gray-600">Dropdown links (label above is not clickable)</p>
+                        {(item.children || []).map((child, childIndex) => (
+                          <div key={childIndex} className="flex flex-col sm:flex-row gap-2 sm:items-end">
+                            <Input
+                              value={child.label}
+                              onChange={(e) => {
+                                const arr = [...(settings.navMenu || [])]
+                                const children = [...(arr[index].children || [])]
+                                children[childIndex] = { ...children[childIndex], label: e.target.value }
+                                arr[index] = { ...arr[index], children }
+                                updateField('navMenu', arr)
+                              }}
+                              placeholder="Link label"
+                              className="bg-white border-gray-300 flex-1"
+                            />
+                            <Input
+                              value={child.href}
+                              onChange={(e) => {
+                                const arr = [...(settings.navMenu || [])]
+                                const children = [...(arr[index].children || [])]
+                                children[childIndex] = { ...children[childIndex], href: e.target.value }
+                                arr[index] = { ...arr[index], children }
+                                updateField('navMenu', arr)
+                              }}
+                              placeholder="/page-url"
+                              className="bg-white border-gray-300 flex-1"
+                            />
+                            <Button type="button" variant="outline" size="sm" className="text-red-600" onClick={() => {
+                              const arr = [...(settings.navMenu || [])]
+                              const children = [...(arr[index].children || [])]
+                              children.splice(childIndex, 1)
+                              arr[index] = { ...arr[index], children }
+                              updateField('navMenu', arr)
+                            }}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button type="button" variant="outline" size="sm" onClick={() => {
+                          const arr = [...(settings.navMenu || [])]
+                          const children = [...(arr[index].children || []), { label: '', href: '', order: (arr[index].children || []).length, openInNewTab: false }]
+                          arr[index] = { ...arr[index], children }
+                          updateField('navMenu', arr)
+                        }}>
+                          <Plus className="h-4 w-4 mr-1" /> Add dropdown link
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <Button
@@ -1239,7 +1299,7 @@ export default function AdminSettingsPage() {
                   className="w-full border-dashed"
                   onClick={() => {
                     const arr = [...(settings.navMenu || [])]
-                    arr.push({ label: '', href: '', order: arr.length, openInNewTab: false })
+                    arr.push({ label: '', href: '', order: arr.length, openInNewTab: false, isDropdown: false, children: [] })
                     updateField('navMenu', arr)
                   }}
                 >

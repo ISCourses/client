@@ -1,13 +1,22 @@
-export type NavItem = {
+export type NavChildItem = {
   label: string
   href: string
   order?: number
   openInNewTab?: boolean
 }
 
+export type NavItem = {
+  label: string
+  href: string
+  order?: number
+  openInNewTab?: boolean
+  isDropdown?: boolean
+  children?: NavChildItem[]
+}
+
 export const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: 'Courses', href: '/courses', order: 0 },
-  { label: 'Books', href: '/books', order: 1 },
+  { label: 'Products', href: '/books', order: 1 },
   { label: 'Blog', href: '/blogs', order: 2 }
 ]
 
@@ -16,12 +25,24 @@ export function normalizeNavItems(raw: unknown): NavItem[] {
     return [...DEFAULT_NAV_ITEMS]
   }
   const items = raw
-    .filter((i: NavItem) => i?.label?.trim() && i?.href?.trim())
+    .filter((i: NavItem) => i?.label?.trim())
     .map((i: NavItem) => ({
       label: i.label.trim(),
-      href: i.href.trim(),
+      href: (i.href || '').trim(),
       order: i.order ?? 0,
-      openInNewTab: !!i.openInNewTab
+      openInNewTab: !!i.openInNewTab,
+      isDropdown: !!i.isDropdown,
+      children: Array.isArray(i.children)
+        ? i.children
+            .filter((c) => c?.label?.trim() && c?.href?.trim())
+            .map((c) => ({
+              label: c.label.trim(),
+              href: c.href.trim(),
+              order: c.order ?? 0,
+              openInNewTab: !!c.openInNewTab
+            }))
+            .sort((a, b) => a.order - b.order)
+        : []
     }))
     .sort((a, b) => a.order - b.order)
   return items.length > 0 ? items : [...DEFAULT_NAV_ITEMS]
@@ -31,7 +52,7 @@ export type FooterLink = { label: string; href: string; order?: number }
 
 export const DEFAULT_FOOTER_QUICK: FooterLink[] = [
   { label: 'Courses', href: '/courses', order: 0 },
-  { label: 'Books', href: '/books', order: 1 },
+  { label: 'Products', href: '/books', order: 1 },
   { label: 'Blog', href: '/blogs', order: 2 },
   { label: 'About Us', href: '/about', order: 3 },
   { label: 'Contact', href: '/contact', order: 4 }

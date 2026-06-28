@@ -314,17 +314,56 @@ export default function NewQuizPage() {
                         <label className="block text-sm font-medium text-gray-900 mb-2">
                           Options *
                         </label>
-                        {[0, 1, 2, 3].map((optIndex) => (
-                          <div key={optIndex} className="mb-2">
-                            <Input
-                              {...register(`questions.${index}.options.${optIndex}`, { 
-                                required: watch(`questions.${index}.type`) !== 'checkbox' || optIndex < 2 ? 'Option is required' : false
-                              })}
-                              placeholder={`Option ${optIndex + 1}`}
-                              className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
-                            />
+                        {watch(`questions.${index}.type`) === 'select' ? (
+                          <div className="space-y-2">
+                            {(watch(`questions.${index}.options`) || ['', '']).map((_: string, optIndex: number) => (
+                              <div key={optIndex} className="flex gap-2">
+                                <Input
+                                  {...register(`questions.${index}.options.${optIndex}`)}
+                                  placeholder={`Option ${optIndex + 1}`}
+                                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-400 flex-1"
+                                />
+                                {(watch(`questions.${index}.options`) || []).length > 2 && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const current = watch(`questions.${index}.options`) || []
+                                      setValue(`questions.${index}.options`, current.filter((_: string, i: number) => i !== optIndex))
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const current = watch(`questions.${index}.options`) || ['', '']
+                                setValue(`questions.${index}.options`, [...current, ''])
+                              }}
+                            >
+                              <Plus className="h-4 w-4 mr-1" /> Add option
+                            </Button>
+                            <p className="text-xs text-gray-600">Add as many options as needed (e.g. True/False). Only filled options are saved.</p>
                           </div>
-                        ))}
+                        ) : (
+                          [0, 1, 2, 3].map((optIndex) => (
+                            <div key={optIndex} className="mb-2">
+                              <Input
+                                {...register(`questions.${index}.options.${optIndex}`, { 
+                                  required: watch(`questions.${index}.type`) !== 'checkbox' || optIndex < 2 ? 'Option is required' : false
+                                })}
+                                placeholder={`Option ${optIndex + 1}`}
+                                className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                              />
+                            </div>
+                          ))
+                        )}
                       </div>
                     )}
 
@@ -337,7 +376,26 @@ export default function NewQuizPage() {
                         <label className="block text-sm font-medium text-gray-900 mb-2">
                           Correct Answer *
                         </label>
-                        {watch(`questions.${index}.type`) === 'multiple-choice' || watch(`questions.${index}.type`) === 'select' ? (
+                        {watch(`questions.${index}.type`) === 'select' ? (
+                          <div className="space-y-2">
+                            {(watch(`questions.${index}.options`) || [])
+                              .filter((opt: string) => opt?.trim())
+                              .map((optionText: string, optIndex: number) => (
+                                <label key={optIndex} className="flex items-center space-x-2 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    value={optionText}
+                                    {...register(`questions.${index}.correctAnswer`, { required: 'Select the correct answer' })}
+                                    className="text-red-600"
+                                  />
+                                  <span className="text-gray-900">{optionText}</span>
+                                </label>
+                              ))}
+                            {(watch(`questions.${index}.options`) || []).filter((o: string) => o?.trim()).length === 0 && (
+                              <p className="text-xs text-gray-500">Fill in options above first, then select the correct one.</p>
+                            )}
+                          </div>
+                        ) : watch(`questions.${index}.type`) === 'multiple-choice' ? (
                           <>
                             <select
                               {...register(`questions.${index}.correctAnswer`, { required: 'Correct answer is required' })}

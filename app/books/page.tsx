@@ -76,8 +76,8 @@ export default function BooksPage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Islamic Books Store</h1>
-          <p className="text-gray-600">Discover and purchase authentic Islamic books and literature</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Products</h1>
+          <p className="text-gray-600">Discover and purchase authentic Islamic products and literature</p>
         </div>
 
         {/* Search and Filters */}

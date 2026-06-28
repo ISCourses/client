@@ -7,11 +7,14 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { Button } from '@/components/ui/button'
 import api from '@/lib/api'
+import ContentBlocksRenderer from '@/components/ContentBlocksRenderer'
+import { ContentBlock, normalizeContentBlocks } from '@/lib/content-blocks'
 
 type CmsPage = {
   title: string
   slug: string
   bodyHtml: string
+  contentBlocks?: ContentBlock[]
   metaDescription?: string
 }
 
@@ -53,7 +56,6 @@ export default function CmsPublicPage() {
             <div className="h-10 w-2/3 max-w-md rounded-lg bg-gray-200" />
             <div className="h-4 w-full rounded bg-gray-100" />
             <div className="h-4 w-full rounded bg-gray-100" />
-            <div className="h-4 w-4/5 rounded bg-gray-100" />
           </div>
         </main>
         <Footer />
@@ -77,16 +79,22 @@ export default function CmsPublicPage() {
     )
   }
 
+  const blocks = normalizeContentBlocks(page.contentBlocks, page.bodyHtml)
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Navbar />
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <article>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">{page.title}</h1>
-          <div
-            className="prose prose-lg max-w-none text-gray-800"
-            dangerouslySetInnerHTML={{ __html: page.bodyHtml || '<p></p>' }}
-          />
+          {blocks.length > 0 ? (
+            <ContentBlocksRenderer blocks={blocks} />
+          ) : (
+            <div
+              className="prose prose-lg max-w-none text-gray-800"
+              dangerouslySetInnerHTML={{ __html: page.bodyHtml || '<p></p>' }}
+            />
+          )}
         </article>
       </main>
       <Footer />

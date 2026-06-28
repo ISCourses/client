@@ -142,7 +142,7 @@ export default function BookDetailPage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Book not found</h1>
             <Link href="/books">
-              <Button>Back to Books</Button>
+              <Button>Back to Products</Button>
             </Link>
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function BookDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
-            <Link href="/books" className="hover:text-red-600">Books</Link>
+            <Link href="/books" className="hover:text-red-600">Products</Link>
             <span>/</span>
             <span>{book.title}</span>
           </div>

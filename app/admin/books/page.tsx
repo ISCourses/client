@@ -117,13 +117,13 @@ export default function AdminBooksPage() {
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Book Management</h1>
-              <p className="text-gray-600">Manage all books in your store</p>
+              <h1 className="text-3xl font-bold text-gray-900">Product Management</h1>
+              <p className="text-gray-600">Manage all products in your store</p>
             </div>
             <Link href="/admin/books/new">
               <Button className="bg-red-600 text-white hover:bg-red-700">
                 <Plus className="h-4 w-4 mr-2" />
-                Add New Book
+                Add New Product
               </Button>
             </Link>
           </div>
@@ -135,7 +135,7 @@ export default function AdminBooksPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 h-4 w-4" />
               <Input
-                placeholder="Search books..."
+                placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-white border-gray-200 text-gray-900"
@@ -159,7 +159,7 @@ export default function AdminBooksPage() {
         {/* Books Table */}
         <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-gray-900">All Books ({books.length})</CardTitle>
+            <CardTitle className="text-gray-900">All Products ({books.length})</CardTitle>
             <CardDescription className="text-gray-600">
               Manage and organize your book inventory
             </CardDescription>
