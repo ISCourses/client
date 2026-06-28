@@ -4,8 +4,9 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePublicSettings } from '@/contexts/PublicSettingsContext'
 import { Button } from '@/components/ui/button'
-import { BookOpen, User, LogOut } from 'lucide-react'
+import { BookOpen, User, LogOut, ChevronDown } from 'lucide-react'
 import { NavItem, normalizeNavItems } from '@/lib/site-nav'
+import { useState } from 'react'
 
 function NavbarSkeleton() {
   return (
@@ -19,15 +20,49 @@ function NavbarSkeleton() {
           <div className="hidden md:flex items-center space-x-8">
             <div className="h-4 w-16 rounded bg-gray-200 animate-pulse" />
             <div className="h-4 w-14 rounded bg-gray-200 animate-pulse" />
-            <div className="h-4 w-12 rounded bg-gray-200 animate-pulse" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="h-9 w-16 rounded bg-gray-200 animate-pulse" />
-            <div className="h-9 w-20 rounded bg-gray-200 animate-pulse" />
           </div>
         </div>
       </div>
     </nav>
+  )
+}
+
+function NavDropdown({ item }: { item: NavItem }) {
+  const [open, setOpen] = useState(false)
+  const children = item.children || []
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className="flex items-center gap-1 text-gray-700 hover:text-red-600 transition-colors"
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        {item.label}
+        <ChevronDown className="h-4 w-4" />
+      </button>
+      {open && children.length > 0 && (
+        <div className="absolute top-full left-0 pt-1 min-w-[180px] z-50">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+            {children.map((child) => (
+              <Link
+                key={`${child.href}-${child.label}`}
+                href={child.href}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
+                {...(child.openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              >
+                {child.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -59,16 +94,20 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={`${item.href}-${item.label}`}
-                href={item.href}
-                className="text-gray-700 hover:text-red-600 transition-colors"
-                {...(item.openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) =>
+              item.isDropdown && item.children?.length ? (
+                <NavDropdown key={`${item.label}-dropdown`} item={item} />
+              ) : (
+                <Link
+                  key={`${item.href}-${item.label}`}
+                  href={item.href}
+                  className="text-gray-700 hover:text-red-600 transition-colors"
+                  {...(item.openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
             {user?.role === 'admin' && (
               <Link href="/admin" className="text-gray-700 hover:text-red-600 transition-colors">
                 Admin
@@ -85,12 +124,7 @@ export default function Navbar() {
                     <span>{user.name}</span>
                   </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={logout}
-                  className="flex items-center space-x-2"
-                >
+                <Button variant="outline" size="sm" onClick={logout} className="flex items-center space-x-2">
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>
                 </Button>
@@ -103,9 +137,7 @@ export default function Navbar() {
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm">
-                    Sign Up
-                  </Button>
+                  <Button size="sm">Sign Up</Button>
                 </Link>
               </div>
             )}

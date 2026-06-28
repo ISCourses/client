@@ -17,7 +17,9 @@ import {
   Bell,
   Receipt,
   ClipboardCheck,
-  LayoutTemplate
+  LayoutTemplate,
+  MessageSquare,
+  ClipboardList
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -33,7 +35,7 @@ const menuItems = [
     icon: GraduationCap,
   },
   {
-    title: "Books",
+    title: "Products",
     url: "/admin/books",
     icon: BookOpen,
   },
@@ -66,6 +68,16 @@ const menuItems = [
     title: "Transactions",
     url: "/admin/transactions",
     icon: Receipt,
+  },
+  {
+    title: "Form submissions",
+    url: "/admin/form-submissions",
+    icon: MessageSquare,
+  },
+  {
+    title: "Registration responses",
+    url: "/admin/registration-responses",
+    icon: ClipboardList,
   },
   {
     title: "Quiz Grading",

@@ -12,7 +12,8 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
 import { cmsPagePath, normalizeCmsSlug } from '@/lib/cms'
-import CmsHtmlEditor from '@/components/admin/CmsHtmlEditor'
+import ContentBlockEditor from '@/components/admin/ContentBlockEditor'
+import { blocksToLegacyContent, ContentBlock } from '@/lib/content-blocks'
 
 export default function NewCmsPage() {
   const { user, loading } = useAuth()
@@ -21,7 +22,7 @@ export default function NewCmsPage() {
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [slugTouched, setSlugTouched] = useState(false)
-  const [bodyHtml, setBodyHtml] = useState('')
+  const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
   const [metaDescription, setMetaDescription] = useState('')
   const [published, setPublished] = useState(false)
 
@@ -53,7 +54,8 @@ export default function NewCmsPage() {
       await api.post('/cms-pages/admin', {
         title: title.trim(),
         slug: s,
-        bodyHtml,
+        contentBlocks,
+        bodyHtml: blocksToLegacyContent(contentBlocks),
         metaDescription,
         published
       })
@@ -151,14 +153,14 @@ export default function NewCmsPage() {
             <CardHeader>
               <CardTitle className="text-gray-900">Page content</CardTitle>
               <CardDescription className="text-gray-600">
-                Use the toolbar for headings, lists, links, and formatting. Content is saved as HTML for the public page.
+                Add rich text, images, videos, buttons, and draggable sections with nested blocks — same as CMS pages.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CmsHtmlEditor
-                value={bodyHtml}
-                onChange={setBodyHtml}
-                placeholder="Start writing your page…"
+              <ContentBlockEditor
+                blocks={contentBlocks}
+                onChange={setContentBlocks}
+                description="Drag blocks to reorder. Add buttons to link to other pages or external URLs."
               />
             </CardContent>
           </Card>

@@ -17,30 +17,47 @@ interface HeroProps {
 
 export default function Hero({ initialContent }: HeroProps) {
   const content = initialContent
-  const heroTitle = content?.heroTitle || 'Seek Knowledge, Seek Islam'
-  const heroDescription = content?.heroDescription || '"Seek knowledge from the cradle to the grave" - Prophet Muhammad (PBUH). Discover authentic Islamic courses, books, and resources to strengthen your faith and understanding.'
+  const rawTitle = String(content?.heroTitle ?? '').trim()
+  const rawDescription = String(content?.heroDescription ?? '').trim()
+  const hasHeroText = !!(rawTitle || rawDescription)
+  const heroTitle = rawTitle || 'Seek Knowledge, Seek Islam'
+  const heroDescription =
+    rawDescription ||
+    '"Seek knowledge from the cradle to the grave" - Prophet Muhammad (PBUH). Discover authentic Islamic courses, products, and resources to strengthen your faith and understanding.'
   const heroImage = content?.heroImage
+  const showOverlay = heroImage && hasHeroText
+  const useLightText = showOverlay
 
   return (
-    <section 
+    <section
       className={`py-20 ${heroImage ? '' : 'bg-gradient-to-r from-red-50 to-white'}`}
-      style={heroImage ? {
-        backgroundImage: `url(${heroImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      } : {}}
+      style={
+        heroImage
+          ? {
+              backgroundImage: `url(${heroImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }
+          : {}
+      }
     >
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${heroImage ? 'bg-black bg-opacity-50 rounded-lg py-12' : ''}`}>
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${showOverlay ? 'bg-black bg-opacity-50 rounded-lg py-12' : ''}`}>
         <div className="text-center">
           <div className="mb-4">
-            <span className={`text-2xl font-arabic ${heroImage ? 'text-white' : 'text-red-600'}`}>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</span>
+            <span className={`text-2xl font-arabic ${useLightText ? 'text-white' : 'text-red-600'}`}>
+              بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+            </span>
           </div>
-          <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${heroImage ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${useLightText ? 'text-white' : 'text-gray-900'}`}>
             {heroTitle.split(',')[0]}
-            {heroTitle.includes(',') && <span className="text-red-600">, {heroTitle.split(',').slice(1).join(',')}</span>}
+            {heroTitle.includes(',') && (
+              <span className={useLightText ? 'text-white' : 'text-red-600'}>
+                , {heroTitle.split(',').slice(1).join(',')}
+              </span>
+            )}
           </h1>
-          <p className={`text-xl mb-8 max-w-3xl mx-auto ${heroImage ? 'text-white' : 'text-gray-700'}`}>
+          <p className={`text-xl mb-8 max-w-3xl mx-auto ${useLightText ? 'text-white' : 'text-gray-700'}`}>
             {heroDescription}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -53,7 +70,7 @@ export default function Hero({ initialContent }: HeroProps) {
             <Link href="/books">
               <Button variant="outline" size="lg" className="flex items-center space-x-2">
                 <BookOpen className="h-5 w-5" />
-                <span>Browse Islamic Books</span>
+                <span>Browse Products</span>
               </Button>
             </Link>
           </div>
@@ -79,7 +96,7 @@ export default function Hero({ initialContent }: HeroProps) {
               <Star className="h-8 w-8 text-red-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Lifetime Learning</h3>
-            <p className="text-gray-600">Access comprehensive Islamic education with courses, books, and quizzes</p>
+            <p className="text-gray-600">Access comprehensive Islamic education with courses, products, and quizzes</p>
           </div>
         </div>
       </div>

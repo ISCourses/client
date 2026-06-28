@@ -14,15 +14,17 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
+import ContentBlocksRenderer from '@/components/ContentBlocksRenderer'
 
 interface Lesson {
   _id: string
   title: string
   content: string
   contentBlocks?: Array<{
-    type: 'text' | 'image' | 'video'
+    type: 'text' | 'image' | 'video' | 'button'
     content: string
     order: number
+    metadata?: { url?: string; openInNewTab?: boolean }
   }>
   order: number
   duration: number
@@ -922,20 +924,23 @@ export default function CourseLearnPage() {
                               </div>
                             )}
 
-                            {/* Select */}
+                            {/* Select — radio buttons, only filled options shown */}
                             {questionType === 'select' && question.options && (
-                              <select
-                                value={currentAnswer || ''}
-                                onChange={(e) => handleQuizAnswerChange(index, e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                              >
-                                <option value="">Select an option</option>
-                                {question.options.map((option: string, optionIndex: number) => (
-                                  <option key={optionIndex} value={option}>
-                                    {option}
-                                  </option>
+                              <div className="space-y-2">
+                                {question.options.filter((o: string) => o?.trim()).map((option: string, optionIndex: number) => (
+                                  <label key={optionIndex} className="flex items-center space-x-3 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name={`question-${index}`}
+                                      value={option}
+                                      checked={currentAnswer === option}
+                                      onChange={(e) => handleQuizAnswerChange(index, e.target.value)}
+                                      className="text-red-600 focus:ring-red-500"
+                                    />
+                                    <span className="text-gray-700">{option}</span>
+                                  </label>
                                 ))}
-                              </select>
+                              </div>
                             )}
 
                             {/* Checkbox */}
@@ -1029,43 +1034,7 @@ export default function CourseLearnPage() {
                 </CardHeader>
                 <CardContent>
                   {currentLesson.contentBlocks && currentLesson.contentBlocks.length > 0 ? (
-                    <div className="space-y-6">
-                      {currentLesson.contentBlocks
-                        .sort((a, b) => a.order - b.order)
-                        .map((block, index) => (
-                          <div key={index}>
-                            {block.type === 'text' && (
-                              <div 
-                                className="prose max-w-none text-gray-700 leading-relaxed"
-                                dangerouslySetInnerHTML={{ 
-                                  __html: block.content.replace(/\n/g, '<br />') 
-                                }}
-                              />
-                            )}
-                            {block.type === 'image' && (
-                              <div className="my-4">
-                                <img 
-                                  src={block.content} 
-                                  alt={`Lesson image ${index + 1}`}
-                                  className="max-w-full h-auto rounded-lg"
-                                />
-                              </div>
-                            )}
-                            {block.type === 'video' && (
-                              <div className="my-4">
-                                <div className="aspect-video">
-                                  <iframe
-                                    src={block.content}
-                                    className="w-full h-full rounded-lg"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                    </div>
+                    <ContentBlocksRenderer blocks={currentLesson.contentBlocks} />
                   ) : (
                     <div className="prose max-w-none">
                       <div 

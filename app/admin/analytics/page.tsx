@@ -73,7 +73,7 @@ export default function AdminAnalyticsPage() {
       case 'course':
         return 'Courses'
       case 'book':
-        return 'Books'
+        return 'Products'
       case 'blog':
         return 'Blogs'
       case 'home':

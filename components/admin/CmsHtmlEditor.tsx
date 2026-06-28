@@ -25,9 +25,10 @@ export type CmsHtmlEditorProps = {
   onChange: (html: string) => void
   placeholder?: string
   className?: string
+  compact?: boolean
 }
 
-export default function CmsHtmlEditor({ value, onChange, placeholder, className }: CmsHtmlEditorProps) {
+export default function CmsHtmlEditor({ value, onChange, placeholder, className, compact }: CmsHtmlEditorProps) {
   const modules = useMemo(
     () => ({
       toolbar: [
@@ -47,6 +48,7 @@ export default function CmsHtmlEditor({ value, onChange, placeholder, className 
     <div
       className={cn(
         'cms-html-editor rounded-md border border-gray-200 bg-white overflow-hidden text-gray-900',
+        compact && 'cms-html-editor-compact',
         className
       )}
     >

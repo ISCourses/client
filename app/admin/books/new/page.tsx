@@ -178,7 +178,7 @@ export default function NewBookPage() {
             <Link href="/admin/books">
               <Button variant="outline" className="bg-white border-gray-300 text-gray-900 hover:bg-gray-100">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Books
+                Back to Products
               </Button>
             </Link>
           </div>
