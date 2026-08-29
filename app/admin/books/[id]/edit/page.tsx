@@ -354,8 +354,11 @@ export default function EditBookPage() {
                   <Input
                     type="number"
                     {...register('pages', {
-                      setValueAs: (v) => (v === '' || v == null ? null : Number(v)),
-                      validate: (v) => v == null || v === '' || Number(v) >= 1 || 'Pages must be at least 1'
+                      setValueAs: (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? null : Number(v)),
+                      validate: (v) => {
+                        if (v == null) return true
+                        return (typeof v === 'number' && v >= 1) || 'Pages must be at least 1'
+                      }
                     })}
                     placeholder="Number of pages (optional)"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
@@ -400,12 +403,12 @@ export default function EditBookPage() {
                 <Input
                   type="number"
                   {...register('publicationYear', {
-                    setValueAs: (v) => (v === '' || v == null ? null : Number(v)),
+                    setValueAs: (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? null : Number(v)),
                     validate: (v) => {
-                      if (v == null || v === '') return true
-                      const n = Number(v)
-                      if (n < 1000) return 'Enter a valid year'
-                      if (n > new Date().getFullYear() + 1) return 'Year is too far in the future'
+                      if (v == null) return true
+                      if (typeof v !== 'number' || Number.isNaN(v)) return 'Enter a valid year'
+                      if (v < 1000) return 'Enter a valid year'
+                      if (v > new Date().getFullYear() + 1) return 'Year is too far in the future'
                       return true
                     }
                   })}
