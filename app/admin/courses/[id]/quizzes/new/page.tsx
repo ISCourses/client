@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
 
 interface Question {
   question: string
-  type: 'multiple-choice' | 'text' | 'textarea' | 'select' | 'checkbox'
+  type: 'multiple-choice' | 'text' | 'textarea' | 'select' | 'checkbox' | 'fill-in-blank'
   options?: string[]
   correctAnswer?: string
   correctAnswers?: string[] // For checkbox
@@ -78,7 +78,7 @@ export default function NewQuizPage() {
         } else if (q.type === 'multiple-choice' || q.type === 'select') {
           question.options = q.options?.filter(opt => opt && opt.trim())
           question.correctAnswer = q.correctAnswer
-        } else if (q.type === 'text' || q.type === 'textarea') {
+        } else if (q.type === 'text' || q.type === 'textarea' || q.type === 'fill-in-blank') {
           question.correctAnswer = q.correctAnswer
         }
         
@@ -288,8 +288,9 @@ export default function NewQuizPage() {
                         className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
                         <option value="multiple-choice">Multiple Choice (Auto-graded)</option>
-                        <option value="text">Text (Manual grading)</option>
-                        <option value="textarea">Textarea (Manual grading)</option>
+                        <option value="text">Short text (Auto-graded)</option>
+                        <option value="textarea">Long text (Auto-graded)</option>
+                        <option value="fill-in-blank">Fill in the blank (Auto-graded)</option>
                         <option value="select">Select (Auto-graded)</option>
                         <option value="checkbox">Checkbox (Auto-graded)</option>
                       </select>
@@ -371,7 +372,8 @@ export default function NewQuizPage() {
                     {(watch(`questions.${index}.type`) === 'multiple-choice' || 
                       watch(`questions.${index}.type`) === 'select' || 
                       watch(`questions.${index}.type`) === 'text' || 
-                      watch(`questions.${index}.type`) === 'textarea') && (
+                      watch(`questions.${index}.type`) === 'textarea' ||
+                      watch(`questions.${index}.type`) === 'fill-in-blank') && (
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">
                           Correct Answer *
@@ -419,11 +421,11 @@ export default function NewQuizPage() {
                           <>
                             <Input
                               {...register(`questions.${index}.correctAnswer`, { required: 'Correct answer is required' })}
-                              placeholder="Enter the expected answer (for manual grading reference)"
+                              placeholder="Expected answer (auto-graded)"
                               className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                             />
                             <p className="mt-1 text-xs text-gray-600">
-                              This answer will be used as a reference for manual grading.
+                              Graded automatically (case-insensitive). Accept multiple answers with | e.g. Paris|City of Light
                             </p>
                           </>
                         )}

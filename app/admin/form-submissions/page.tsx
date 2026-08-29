@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
 import { Trash2, Mail, Heart } from 'lucide-react'
+import Link from 'next/link'
 
 interface FormSubmission {
   _id: string
@@ -92,9 +93,16 @@ export default function FormSubmissionsPage() {
     <div className="min-h-screen bg-white flex">
       <AdminSidebar />
       <div className="flex-1 p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Form submissions</h1>
-          <p className="text-gray-600">View contact and donation form responses</p>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Form submissions</h1>
+            <p className="text-gray-600">View contact and donation form responses</p>
+          </div>
+          <Link href="/admin/settings/donation-form">
+            <Button variant="outline" className="border-gray-300 text-gray-900">
+              Edit donation form
+            </Button>
+          </Link>
         </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as 'contact' | 'donate')}>

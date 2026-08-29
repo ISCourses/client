@@ -19,7 +19,8 @@ import {
   ClipboardCheck,
   LayoutTemplate,
   MessageSquare,
-  ClipboardList
+  ClipboardList,
+  Heart
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -73,6 +74,11 @@ const menuItems = [
     title: "Form submissions",
     url: "/admin/form-submissions",
     icon: MessageSquare,
+  },
+  {
+    title: "Donation form",
+    url: "/admin/settings/donation-form",
+    icon: Heart,
   },
   {
     title: "Registration responses",

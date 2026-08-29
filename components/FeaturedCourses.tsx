@@ -88,7 +88,7 @@ export default function FeaturedCourses() {
                 </div>
                 <CardTitle className="text-lg">{course.title}</CardTitle>
                 <CardDescription className="line-clamp-2">
-                  {course.description}
+                  {(course.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}
                 </CardDescription>
               </CardHeader>
               <CardContent>

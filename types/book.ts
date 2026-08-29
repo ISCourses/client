@@ -2,16 +2,16 @@
 export interface Book {
   _id: string
   title: string
-  author: string
+  author?: string
   description?: string
   category: string
   price: number
   currency?: string
   language?: string
-  pages: number
+  pages?: number | null
   isbn?: string
   publisher?: string
-  publicationYear?: number
+  publicationYear?: number | null
   coverImage?: string
   pdfFile?: string
   isPublished: boolean

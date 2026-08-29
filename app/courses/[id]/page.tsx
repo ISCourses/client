@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
 import PayPalButton from '@/components/PayPalButton'
+import StripeCheckoutButton from '@/components/StripeCheckoutButton'
 
 interface Course {
   _id: string
@@ -61,6 +62,15 @@ export default function CourseDetailPage() {
       fetchCourse()
     }
   }, [params.id])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('payment') === 'cancelled') {
+      toast.error('Payment was cancelled')
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
 
   useEffect(() => {
     if (course && user) {
@@ -199,7 +209,10 @@ export default function CourseDetailPage() {
             {/* Course Description */}
             {course.description && (
               <div className="mt-6">
-                <p className="text-gray-600 text-lg leading-relaxed">{course.description}</p>
+                <div
+                  className="prose max-w-none text-gray-600 text-lg leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: course.description }}
+                />
               </div>
             )}
 
@@ -470,6 +483,21 @@ export default function CourseDetailPage() {
                       </Button>
                     ) : (
                       <div className="space-y-3">
+                        <StripeCheckoutButton
+                          courseId={course._id}
+                          amount={course.price}
+                        />
+                        <p className="text-xs text-gray-500 text-center">
+                          Pay securely by card via Stripe
+                        </p>
+                        <div className="relative py-1">
+                          <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-gray-200" />
+                          </div>
+                          <div className="relative flex justify-center text-xs">
+                            <span className="bg-white px-2 text-gray-400">or</span>
+                          </div>
+                        </div>
                         <PayPalButton
                           courseId={course._id}
                           amount={course.price}
@@ -481,9 +509,6 @@ export default function CourseDetailPage() {
                             }, 500)
                           }}
                         />
-                        <p className="text-xs text-gray-500 text-center">
-                          Secure payment via PayPal
-                        </p>
                       </div>
                     )}
                     <p className="text-xs text-gray-500 text-center">

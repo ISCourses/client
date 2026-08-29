@@ -16,16 +16,16 @@ import { Book } from '@/types/book'
 
 interface BookForm {
   title: string
-  author: string
+  author?: string
   description: string
   category: string
   price: number
   currency: string
   language: string
-  pages: number
+  pages?: number | null
   isbn: string
-  publisher: string
-  publicationYear: number
+  publisher?: string
+  publicationYear?: number | null
   coverImage: string
   pdfFile: string
   tags: string
@@ -258,11 +258,11 @@ export default function EditBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Author *
+                    Author
                   </label>
                   <Input
-                    {...register('author', { required: 'Author is required' })}
-                    placeholder="Enter author name"
+                    {...register('author')}
+                    placeholder="Enter author name (optional)"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
                   {errors.author && (
@@ -349,12 +349,15 @@ export default function EditBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Pages *
+                    Pages
                   </label>
                   <Input
                     type="number"
-                    {...register('pages', { required: 'Pages is required', min: 1 })}
-                    placeholder="Number of pages"
+                    {...register('pages', {
+                      setValueAs: (v) => (v === '' || v == null ? null : Number(v)),
+                      validate: (v) => v == null || v === '' || Number(v) >= 1 || 'Pages must be at least 1'
+                    })}
+                    placeholder="Number of pages (optional)"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
                   {errors.pages && (
@@ -377,11 +380,11 @@ export default function EditBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Publisher *
+                    Publisher
                   </label>
                   <Input
-                    {...register('publisher', { required: 'Publisher is required' })}
-                    placeholder="Publisher name"
+                    {...register('publisher')}
+                    placeholder="Publisher name (optional)"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
                   {errors.publisher && (
@@ -392,11 +395,20 @@ export default function EditBookPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Publication Year *
+                  Publication Year
                 </label>
                 <Input
                   type="number"
-                  {...register('publicationYear', { required: 'Publication year is required', min: 1000, max: new Date().getFullYear() + 1 })}
+                  {...register('publicationYear', {
+                    setValueAs: (v) => (v === '' || v == null ? null : Number(v)),
+                    validate: (v) => {
+                      if (v == null || v === '') return true
+                      const n = Number(v)
+                      if (n < 1000) return 'Enter a valid year'
+                      if (n > new Date().getFullYear() + 1) return 'Year is too far in the future'
+                      return true
+                    }
+                  })}
                   placeholder="2024"
                   className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                 />

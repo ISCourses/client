@@ -151,7 +151,7 @@ export default function CoursesPage() {
                   </div>
                   <CardTitle className="text-lg">{course.title}</CardTitle>
                   <CardDescription className="line-clamp-2">
-                    {course.description}
+                    {(course.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

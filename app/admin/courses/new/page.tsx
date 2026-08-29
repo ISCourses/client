@@ -10,8 +10,10 @@ import { Input } from '@/components/ui/input'
 import { ArrowLeft, Save, Eye } from 'lucide-react'
 import Link from 'next/link'
 import AdminSidebar from '@/components/AdminSidebar'
+import CmsHtmlEditor from '@/components/admin/CmsHtmlEditor'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
+import { isEmptyHtml } from '@/lib/content-blocks'
 
 interface CourseForm {
   title: string
@@ -42,13 +44,17 @@ export default function NewCoursePage() {
     register,
     handleSubmit,
     formState: { errors },
-    watch
+    watch,
+    setValue
   } = useForm<CourseForm>({
     defaultValues: {
       isPublished: false,
-      price: 0
+      price: 0,
+      description: ''
     }
   })
+
+  const descriptionValue = watch('description') || ''
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -70,6 +76,10 @@ export default function NewCoursePage() {
   }
 
   const onSubmit = async (data: CourseForm) => {
+    if (isEmptyHtml(data.description || '')) {
+      toast.error('Description is required')
+      return
+    }
     setSubmitting(true)
     try {
       await api.post('/courses', data)
@@ -149,12 +159,13 @@ export default function NewCoursePage() {
                     <label className="block text-sm font-medium text-gray-900 mb-2">
                       Description *
                     </label>
-                    <textarea
-                      {...register('description', { required: 'Description is required' })}
-                      placeholder="Enter course description"
-                      rows={6}
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    <CmsHtmlEditor
+                      value={descriptionValue}
+                      onChange={(html) => setValue('description', html, { shouldValidate: true, shouldDirty: true })}
+                      placeholder="Enter course description. Use the toolbar to format text and add links."
+                      compact
                     />
+                    <input type="hidden" {...register('description', { required: 'Description is required' })} />
                     {errors.description && (
                       <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
                     )}

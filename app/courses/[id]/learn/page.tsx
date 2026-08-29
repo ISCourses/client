@@ -900,9 +900,6 @@ export default function CourseLearnPage() {
                           <div key={question._id || index} className="border rounded-lg p-4">
                             <h5 className="font-medium text-gray-900 mb-3">
                               Question {index + 1}: {question.question}
-                              {questionType === 'text' || questionType === 'textarea' ? (
-                                <span className="ml-2 text-xs text-gray-500">(Manual grading)</span>
-                              ) : null}
                             </h5>
                             
                             {/* Multiple Choice */}
@@ -972,6 +969,17 @@ export default function CourseLearnPage() {
                                 value={currentAnswer || ''}
                                 onChange={(e) => handleQuizAnswerChange(index, e.target.value)}
                                 placeholder="Enter your answer"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                              />
+                            )}
+
+                            {/* Fill in the blank */}
+                            {questionType === 'fill-in-blank' && (
+                              <input
+                                type="text"
+                                value={currentAnswer || ''}
+                                onChange={(e) => handleQuizAnswerChange(index, e.target.value)}
+                                placeholder="Fill in the blank"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
                               />
                             )}
