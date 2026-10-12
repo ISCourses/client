@@ -15,12 +15,12 @@ import toast from 'react-hot-toast'
 interface Book {
   _id: string
   title: string
-  author: string
+  author?: string
   description: string
   category: string
   price: number
   currency: string
-  pages: number
+  pages?: number
   coverImage: string
   isFeatured: boolean
   rating: {
@@ -161,16 +161,20 @@ export default function BooksPage() {
                     </div>
                   </div>
                   <CardTitle className="text-lg line-clamp-2">{book.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    by {book.author}
-                  </CardDescription>
+                  {book.author && (
+                    <CardDescription className="line-clamp-2">
+                      by {book.author}
+                    </CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      {book.pages} pages
-                    </div>
+                    {book.pages ? (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        {book.pages} pages
+                      </div>
+                    ) : null}
                     <div className="flex items-center text-sm text-gray-600">
                       <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">
                         {book.category}

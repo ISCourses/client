@@ -21,10 +21,10 @@ interface BookForm {
   price: number
   currency: string
   language: string
-  pages: number
+  pages: number | ''
   isbn: string
   publisher: string
-  publicationYear: number
+  publicationYear: number | ''
   coverImage: string
   pdfFile: string
   tags: string
@@ -137,7 +137,12 @@ export default function NewBookPage() {
         ...data,
         coverImage: coverImage || data.coverImage, // Use uploaded cover if available, otherwise use URL
         pdfFile: pdfFile || data.pdfFile, // Use uploaded PDF if available, otherwise use URL
-        tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : []
+        tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
+        // Leave ISBN out when blank: the database requires unique ISBNs, and an empty one counts as a value
+        isbn: data.isbn?.trim() || undefined,
+        // Optional number fields: send null when left blank
+        pages: data.pages ? Number(data.pages) : null,
+        publicationYear: data.publicationYear ? Number(data.publicationYear) : null
       }
       await api.post('/books', bookData)
       toast.success('Book created successfully!')
@@ -212,10 +217,10 @@ export default function NewBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Author *
+                    Author
                   </label>
                   <Input
-                    {...register('author', { required: 'Author is required' })}
+                    {...register('author')}
                     placeholder="Enter author name"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
@@ -303,11 +308,11 @@ export default function NewBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Pages *
+                    Pages
                   </label>
                   <Input
                     type="number"
-                    {...register('pages', { required: 'Pages is required', min: 1 })}
+                    {...register('pages', { validate: (v) => !v || Number(v) >= 1 || 'Pages must be at least 1' })}
                     placeholder="Number of pages"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
@@ -331,10 +336,10 @@ export default function NewBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Publisher *
+                    Publisher
                   </label>
                   <Input
-                    {...register('publisher', { required: 'Publisher is required' })}
+                    {...register('publisher')}
                     placeholder="Publisher name"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
@@ -346,11 +351,11 @@ export default function NewBookPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Publication Year *
+                  Publication Year
                 </label>
                 <Input
                   type="number"
-                  {...register('publicationYear', { required: 'Publication year is required', min: 1000, max: new Date().getFullYear() + 1 })}
+                  {...register('publicationYear', { validate: (v) => !v || (Number(v) >= 1000 && Number(v) <= new Date().getFullYear() + 1) || 'Enter a valid year' })}
                   placeholder="2024"
                   className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                 />
