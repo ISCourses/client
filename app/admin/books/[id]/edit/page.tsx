@@ -184,6 +184,8 @@ export default function EditBookPage() {
         coverImage: coverImage || data.coverImage, // Use uploaded cover if available, otherwise use URL
         pdfFile: pdfFile || data.pdfFile, // Use uploaded PDF if available, otherwise use URL
         tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
+        // Leave ISBN out when blank: the database requires unique ISBNs, and an empty one counts as a value
+        isbn: data.isbn?.trim() || undefined,
         // Optional number fields: send null when left blank
         pages: data.pages ? Number(data.pages) : null,
         publicationYear: data.publicationYear ? Number(data.publicationYear) : null
