@@ -16,16 +16,16 @@ import { Book } from '@/types/book'
 
 interface BookForm {
   title: string
-  author: string
+  author?: string
   description: string
   category: string
   price: number
   currency: string
   language: string
-  pages: number
+  pages?: number | ''
   isbn: string
-  publisher: string
-  publicationYear: number
+  publisher?: string
+  publicationYear?: number | ''
   coverImage: string
   pdfFile: string
   tags: string
@@ -87,10 +87,10 @@ export default function EditBookPage() {
         price: book.price || 0,
         currency: book.currency || 'USD',
         language: book.language || 'English',
-        pages: book.pages || 0,
+        pages: book.pages || '',
         isbn: book.isbn || '',
         publisher: book.publisher || '',
-        publicationYear: book.publicationYear || new Date().getFullYear(),
+        publicationYear: book.publicationYear || '',
         coverImage: book.coverImage || '',
         pdfFile: book.pdfFile || '',
         tags: book.tags?.join(', ') || '',
@@ -183,7 +183,10 @@ export default function EditBookPage() {
         ...data,
         coverImage: coverImage || data.coverImage, // Use uploaded cover if available, otherwise use URL
         pdfFile: pdfFile || data.pdfFile, // Use uploaded PDF if available, otherwise use URL
-        tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : []
+        tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
+        // Optional number fields: send null when left blank
+        pages: data.pages ? Number(data.pages) : null,
+        publicationYear: data.publicationYear ? Number(data.publicationYear) : null
       }
       await api.put(`/books/${bookId}`, bookData)
       toast.success('Book updated successfully!')
@@ -258,10 +261,10 @@ export default function EditBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Author *
+                    Author
                   </label>
                   <Input
-                    {...register('author', { required: 'Author is required' })}
+                    {...register('author')}
                     placeholder="Enter author name"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
@@ -349,11 +352,11 @@ export default function EditBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Pages *
+                    Pages
                   </label>
                   <Input
                     type="number"
-                    {...register('pages', { required: 'Pages is required', min: 1 })}
+                    {...register('pages', { validate: (v) => !v || Number(v) >= 1 || 'Pages must be at least 1' })}
                     placeholder="Number of pages"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
@@ -377,10 +380,10 @@ export default function EditBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Publisher *
+                    Publisher
                   </label>
                   <Input
-                    {...register('publisher', { required: 'Publisher is required' })}
+                    {...register('publisher')}
                     placeholder="Publisher name"
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   />
@@ -392,11 +395,11 @@ export default function EditBookPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Publication Year *
+                  Publication Year
                 </label>
                 <Input
                   type="number"
-                  {...register('publicationYear', { required: 'Publication year is required', min: 1000, max: new Date().getFullYear() + 1 })}
+                  {...register('publicationYear', { validate: (v) => !v || (Number(v) >= 1000 && Number(v) <= new Date().getFullYear() + 1) || 'Enter a valid year' })}
                   placeholder="2024"
                   className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                 />

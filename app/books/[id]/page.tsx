@@ -17,16 +17,16 @@ import toast from 'react-hot-toast'
 interface Book {
   _id: string
   title: string
-  author: string
+  author?: string
   description: string
   category: string
   price: number
   currency: string
   language: string
-  pages: number
+  pages?: number
   isbn: string
-  publisher: string
-  publicationYear: number
+  publisher?: string
+  publicationYear?: number
   coverImage: string
   pdfFile?: string
   isFeatured: boolean
@@ -164,7 +164,7 @@ export default function BookDetailPage() {
           </div>
           
           <h1 className="text-3xl font-bold text-gray-900 mb-4">{book.title}</h1>
-          <p className="text-gray-600 text-lg">by {book.author}</p>
+          {book.author && <p className="text-gray-600 text-lg">by {book.author}</p>}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -256,34 +256,42 @@ export default function BookDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3">
-                    <BookOpen className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Pages</p>
-                      <p className="text-sm text-gray-600">{book.pages}</p>
+                  {book.pages ? (
+                    <div className="flex items-center space-x-3">
+                      <BookOpen className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Pages</p>
+                        <p className="text-sm text-gray-600">{book.pages}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <User className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Author</p>
-                      <p className="text-sm text-gray-600">{book.author}</p>
+                  ) : null}
+                  {book.author ? (
+                    <div className="flex items-center space-x-3">
+                      <User className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Author</p>
+                        <p className="text-sm text-gray-600">{book.author}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Published</p>
-                      <p className="text-sm text-gray-600">{book.publicationYear}</p>
+                  ) : null}
+                  {book.publicationYear ? (
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Published</p>
+                        <p className="text-sm text-gray-600">{book.publicationYear}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <BookOpen className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Publisher</p>
-                      <p className="text-sm text-gray-600">{book.publisher}</p>
+                  ) : null}
+                  {book.publisher ? (
+                    <div className="flex items-center space-x-3">
+                      <BookOpen className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Publisher</p>
+                        <p className="text-sm text-gray-600">{book.publisher}</p>
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                   <div className="flex items-center space-x-3">
                     <BookOpen className="h-5 w-5 text-gray-400" />
                     <div>
