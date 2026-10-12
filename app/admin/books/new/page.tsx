@@ -15,16 +15,16 @@ import toast from 'react-hot-toast'
 
 interface BookForm {
   title: string
-  author?: string
+  author: string
   description: string
   category: string
   price: number
   currency: string
   language: string
-  pages?: number | ''
+  pages: number | ''
   isbn: string
-  publisher?: string
-  publicationYear?: number | ''
+  publisher: string
+  publicationYear: number | ''
   coverImage: string
   pdfFile: string
   tags: string
