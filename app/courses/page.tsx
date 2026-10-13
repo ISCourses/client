@@ -9,6 +9,7 @@ import { Clock, Users, Star, Search, Filter } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import api from '@/lib/api'
+import { useCategoryNames } from '@/lib/use-categories'
 import { htmlToPlainText } from '@/lib/rich-text'
 
 interface Course {
@@ -37,7 +38,7 @@ export default function CoursesPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedLevel, setSelectedLevel] = useState('')
 
-  const categories = ['Web Development', 'Data Science', 'Design', 'Business', 'Marketing', 'Other']
+  const categories = useCategoryNames()
   const levels = ['beginner', 'intermediate', 'advanced']
 
   useEffect(() => {

@@ -10,6 +10,7 @@ import { BookOpen, Search, Filter, Star, ShoppingCart, Eye } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import api from '@/lib/api'
+import { useCategoryNames } from '@/lib/use-categories'
 import toast from 'react-hot-toast'
 
 interface Book {
@@ -37,7 +38,7 @@ export default function BooksPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortBy, setSortBy] = useState('newest')
 
-  const categories = ['Islamic Studies', 'Web Development', 'Data Science', 'Design', 'Business', 'Marketing', 'Other']
+  const categories = useCategoryNames()
 
   useEffect(() => {
     fetchBooks()
