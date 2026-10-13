@@ -1,12 +1,27 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePublicSettings } from '@/contexts/PublicSettingsContext'
 import { Button } from '@/components/ui/button'
 import { BookOpen, User, LogOut, ChevronDown } from 'lucide-react'
 import { NavItem, normalizeNavItems } from '@/lib/site-nav'
 import { useState } from 'react'
+
+// A menu link is current when the page is that link or a page under it (e.g. /courses/123 → Courses)
+function isActivePath(pathname: string, href: string) {
+  if (!href.startsWith('/')) return false // external links
+  const path = href.split(/[?#]/)[0].replace(/\/$/, '') || '/'
+  if (path === '/') return pathname === '/'
+  return pathname === path || pathname.startsWith(`${path}/`)
+}
+
+function navLinkClass(active: boolean) {
+  return active
+    ? 'text-red-600 font-semibold transition-colors'
+    : 'text-gray-700 hover:text-red-600 transition-colors'
+}
 
 function NavbarSkeleton() {
   return (
@@ -27,9 +42,10 @@ function NavbarSkeleton() {
   )
 }
 
-function NavDropdown({ item }: { item: NavItem }) {
+function NavDropdown({ item, pathname }: { item: NavItem; pathname: string }) {
   const [open, setOpen] = useState(false)
   const children = item.children || []
+  const active = children.some((child) => isActivePath(pathname, child.href))
 
   return (
     <div
@@ -39,7 +55,7 @@ function NavDropdown({ item }: { item: NavItem }) {
     >
       <button
         type="button"
-        className="flex items-center gap-1 text-gray-700 hover:text-red-600 transition-colors"
+        className={`flex items-center gap-1 ${navLinkClass(active)}`}
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -49,16 +65,22 @@ function NavDropdown({ item }: { item: NavItem }) {
       {open && children.length > 0 && (
         <div className="absolute top-full left-0 pt-1 min-w-[180px] z-50">
           <div className="bg-white border border-gray-200 rounded-lg shadow-lg py-1">
-            {children.map((child) => (
-              <Link
-                key={`${child.href}-${child.label}`}
-                href={child.href}
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
-                {...(child.openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              >
-                {child.label}
-              </Link>
-            ))}
+            {children.map((child) => {
+              const childActive = isActivePath(pathname, child.href)
+              return (
+                <Link
+                  key={`${child.href}-${child.label}`}
+                  href={child.href}
+                  aria-current={childActive ? 'page' : undefined}
+                  className={`block px-4 py-2 text-sm hover:bg-red-50 hover:text-red-600 ${
+                    childActive ? 'text-red-600 font-semibold' : 'text-gray-700'
+                  }`}
+                  {...(child.openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  {child.label}
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}
@@ -69,6 +91,7 @@ function NavDropdown({ item }: { item: NavItem }) {
 export default function Navbar() {
   const { user, logout } = useAuth()
   const { loading, settings } = usePublicSettings()
+  const pathname = usePathname() || '/'
 
   if (loading) {
     return <NavbarSkeleton />
@@ -96,12 +119,13 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) =>
               item.isDropdown && item.children?.length ? (
-                <NavDropdown key={`${item.label}-dropdown`} item={item} />
+                <NavDropdown key={`${item.label}-dropdown`} item={item} pathname={pathname} />
               ) : (
                 <Link
                   key={`${item.href}-${item.label}`}
                   href={item.href}
-                  className="text-gray-700 hover:text-red-600 transition-colors"
+                  aria-current={isActivePath(pathname, item.href) ? 'page' : undefined}
+                  className={navLinkClass(isActivePath(pathname, item.href))}
                   {...(item.openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 >
                   {item.label}
@@ -109,7 +133,11 @@ export default function Navbar() {
               )
             )}
             {user?.role === 'admin' && (
-              <Link href="/admin" className="text-gray-700 hover:text-red-600 transition-colors">
+              <Link
+                href="/admin"
+                aria-current={isActivePath(pathname, '/admin') ? 'page' : undefined}
+                className={navLinkClass(isActivePath(pathname, '/admin'))}
+              >
                 Admin
               </Link>
             )}
