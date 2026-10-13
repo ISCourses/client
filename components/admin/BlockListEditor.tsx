@@ -16,6 +16,8 @@ import {
   Loader2,
   MousePointerClick,
   LayoutGrid,
+  GalleryHorizontal,
+  Plus,
 } from 'lucide-react'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -29,6 +31,9 @@ import {
   isEmptyHtml,
   LAYOUT_WIDTH_OPTIONS,
   reorderBlocks,
+  SLIDER_HEIGHT_OPTIONS,
+  SliderHeight,
+  SliderSlide,
 } from '@/lib/content-blocks'
 
 const BLOCK_TYPES: { type: ContentBlockType; label: string; icon: typeof FileText }[] = [
@@ -37,6 +42,7 @@ const BLOCK_TYPES: { type: ContentBlockType; label: string; icon: typeof FileTex
   { type: 'video', label: 'Video', icon: Video },
   { type: 'button', label: 'Button', icon: MousePointerClick },
   { type: 'section', label: 'Section', icon: LayoutGrid },
+  { type: 'slider', label: 'Slider', icon: GalleryHorizontal },
 ]
 
 interface BlockListEditorProps {
@@ -109,8 +115,8 @@ export default function BlockListEditor({
 
   const updateBlockMetadata = (
     index: number,
-    field: 'url' | 'openInNewTab' | 'blocks' | 'width',
-    value: string | boolean | ContentBlock[] | BlockLayoutWidth
+    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides' | 'sliderHeight',
+    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[] | SliderHeight
   ) => {
     const next = [...blocks]
     next[index] = {
@@ -157,6 +163,7 @@ export default function BlockListEditor({
       video: 'text-purple-500',
       button: 'text-red-500',
       section: 'text-amber-600',
+      slider: 'text-teal-600',
     }
     return <Icon className={`h-5 w-5 ${colors[type]}`} />
   }
@@ -170,6 +177,10 @@ export default function BlockListEditor({
       return plain.slice(0, 40) + (plain.length > 40 ? '…' : '')
     }
     if (block.type === 'button') return block.content || 'Button'
+    if (block.type === 'slider') {
+      const count = block.metadata?.slides?.length || 0
+      return `${count} slide${count === 1 ? '' : 's'}`
+    }
     return `${block.type} block`
   }
 
@@ -252,8 +263,8 @@ interface BlockCardProps {
   onRemove: () => void
   onContentChange: (content: string) => void
   onMetadataChange: (
-    field: 'url' | 'openInNewTab' | 'blocks' | 'width',
-    value: string | boolean | ContentBlock[] | BlockLayoutWidth
+    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides' | 'sliderHeight',
+    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[] | SliderHeight
   ) => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>, kind: 'image' | 'video') => void
 }
@@ -379,6 +390,15 @@ function BlockCard({
           </div>
         )}
 
+        {block.type === 'slider' && (
+          <SliderEditor
+            slides={block.metadata?.slides || []}
+            onChange={(slides) => onMetadataChange('slides', slides)}
+            height={block.metadata?.sliderHeight || 'medium'}
+            onHeightChange={(height) => onMetadataChange('sliderHeight', height)}
+          />
+        )}
+
         {block.type === 'button' && (
           <div className="space-y-3">
             <div>
@@ -473,6 +493,129 @@ function BlockActions({
       </Button>
       <Button type="button" size="sm" variant="outline" onClick={onRemove} className="text-red-600">
         <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+}
+
+function SliderEditor({
+  slides,
+  onChange,
+  height,
+  onHeightChange,
+}: {
+  slides: SliderSlide[]
+  onChange: (slides: SliderSlide[]) => void
+  height: SliderHeight
+  onHeightChange: (height: SliderHeight) => void
+}) {
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
+
+  const updateSlide = (index: number, patch: Partial<SliderSlide>) => {
+    onChange(slides.map((slide, i) => (i === index ? { ...slide, ...patch } : slide)))
+  }
+
+  const moveSlide = (index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= slides.length) return
+    const next = [...slides]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    onChange(next)
+  }
+
+  const uploadImage = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingIndex(index)
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+      const response = await api.post('/upload/image', formData)
+      updateSlide(index, { imageUrl: response.data.url })
+      toast.success('Image uploaded')
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to upload image')
+    } finally {
+      setUploadingIndex(null)
+      e.target.value = ''
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">Slider height</label>
+        <div className="flex flex-wrap gap-2">
+          {SLIDER_HEIGHT_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onHeightChange(value)}
+              className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+                height === value
+                  ? 'bg-red-600 text-white border-red-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          Pictures are resized to fit the slider without being cut off. Visitors move between slides with arrows,
+          and each slide shows its description under the picture.
+        </p>
+      </div>
+      {slides.map((slide, index) => (
+        <div key={index} className="rounded-lg border border-gray-200 bg-white p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-medium text-gray-900">Slide {index + 1}</span>
+            <BlockActions
+              index={index}
+              total={slides.length}
+              onMoveUp={() => moveSlide(index, -1)}
+              onMoveDown={() => moveSlide(index, 1)}
+              onRemove={() => onChange(slides.filter((_, i) => i !== index))}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={slide.imageUrl}
+              onChange={(e) => updateSlide(index, { imageUrl: e.target.value })}
+              placeholder="Image URL or upload"
+              className="bg-white border-gray-300 flex-1"
+            />
+            <label
+              className={`inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-gray-900 hover:bg-gray-50 ${
+                uploadingIndex === index ? 'pointer-events-none opacity-50' : ''
+              }`}
+              aria-label={`Upload image for slide ${index + 1}`}
+            >
+              {uploadingIndex === index ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadImage(index, e)} />
+            </label>
+          </div>
+          {slide.imageUrl && (
+            <img src={slide.imageUrl} alt="" className="max-h-32 rounded border object-contain" />
+          )}
+          <textarea
+            value={slide.caption}
+            onChange={(e) => updateSlide(index, { caption: e.target.value })}
+            placeholder="Description shown under the picture"
+            rows={2}
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+          />
+        </div>
+      ))}
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={() => onChange([...slides, { imageUrl: '', caption: '' }])}
+        className="bg-white border-gray-300 text-gray-900 hover:bg-gray-50"
+      >
+        <Plus className="h-4 w-4 mr-1.5" />
+        Add slide
       </Button>
     </div>
   )

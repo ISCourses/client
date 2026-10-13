@@ -6,6 +6,8 @@ module.exports = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
+    // Layout width classes for page builder blocks live in lib/content-blocks.ts
+    './lib/**/*.{ts,tsx}',
   ],
   theme: {
     container: {
