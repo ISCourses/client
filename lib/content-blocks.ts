@@ -1,6 +1,26 @@
 export type ContentBlockType = 'text' | 'image' | 'video' | 'button' | 'section' | 'slider'
 
 // One slide in a slider block: a picture with a description under it
+export type SliderHeight = 'small' | 'medium' | 'large'
+
+export const SLIDER_HEIGHT_OPTIONS: { value: SliderHeight; label: string }[] = [
+  { value: 'small', label: 'Small' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'large', label: 'Large' },
+]
+
+// Fixed slider heights; pictures are scaled to fit inside without cropping
+export function getSliderHeightClass(height?: SliderHeight): string {
+  switch (height) {
+    case 'small':
+      return 'h-48 sm:h-64'
+    case 'large':
+      return 'h-80 sm:h-[32rem]'
+    default:
+      return 'h-64 sm:h-96'
+  }
+}
+
 export interface SliderSlide {
   imageUrl: string
   caption: string
@@ -14,6 +34,7 @@ export interface ContentBlockMetadata {
   blocks?: ContentBlock[]
   width?: BlockLayoutWidth
   slides?: SliderSlide[]
+  sliderHeight?: SliderHeight
 }
 
 export const LAYOUT_WIDTH_OPTIONS: { value: BlockLayoutWidth; label: string; hint: string }[] = [
@@ -145,7 +166,7 @@ export function createEmptyBlock(type: ContentBlockType, order: number): Content
       type: 'slider',
       content: '',
       order,
-      metadata: { slides: [{ imageUrl: '', caption: '' }], width: 'full' },
+      metadata: { slides: [{ imageUrl: '', caption: '' }], width: 'full', sliderHeight: 'medium' },
     }
   }
   if (type === 'button') {

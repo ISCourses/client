@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ContentBlock, SliderSlide, getBlockLayoutClass } from '@/lib/content-blocks'
+import { ContentBlock, SliderHeight, SliderSlide, getBlockLayoutClass, getSliderHeightClass } from '@/lib/content-blocks'
 
 function isDirectVideoUrl(url: string) {
   return (
@@ -31,7 +31,7 @@ function renderTextContent(content: string) {
   )
 }
 
-function SliderBlock({ slides }: { slides: SliderSlide[] }) {
+function SliderBlock({ slides, height }: { slides: SliderSlide[]; height?: SliderHeight }) {
   const visible = slides.filter((slide) => slide.imageUrl)
   const [index, setIndex] = useState(0)
   if (visible.length === 0) return null
@@ -42,7 +42,7 @@ function SliderBlock({ slides }: { slides: SliderSlide[] }) {
 
   return (
     <div className="h-full" role="region" aria-roledescription="carousel" aria-label="Image slider">
-      <div className="relative overflow-hidden rounded-lg bg-gray-100 aspect-video">
+      <div className={`relative overflow-hidden rounded-lg bg-gray-100 ${getSliderHeightClass(height)}`}>
         <img
           src={slide.imageUrl}
           alt={slide.caption || `Slide ${current + 1}`}
@@ -138,7 +138,7 @@ function renderBlockContent(block: ContentBlock) {
   }
 
   if (block.type === 'slider') {
-    return <SliderBlock slides={block.metadata?.slides || []} />
+    return <SliderBlock slides={block.metadata?.slides || []} height={block.metadata?.sliderHeight} />
   }
 
   if (block.type === 'section') {

@@ -31,6 +31,8 @@ import {
   isEmptyHtml,
   LAYOUT_WIDTH_OPTIONS,
   reorderBlocks,
+  SLIDER_HEIGHT_OPTIONS,
+  SliderHeight,
   SliderSlide,
 } from '@/lib/content-blocks'
 
@@ -113,8 +115,8 @@ export default function BlockListEditor({
 
   const updateBlockMetadata = (
     index: number,
-    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides',
-    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[]
+    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides' | 'sliderHeight',
+    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[] | SliderHeight
   ) => {
     const next = [...blocks]
     next[index] = {
@@ -261,8 +263,8 @@ interface BlockCardProps {
   onRemove: () => void
   onContentChange: (content: string) => void
   onMetadataChange: (
-    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides',
-    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[]
+    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides' | 'sliderHeight',
+    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[] | SliderHeight
   ) => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>, kind: 'image' | 'video') => void
 }
@@ -392,6 +394,8 @@ function BlockCard({
           <SliderEditor
             slides={block.metadata?.slides || []}
             onChange={(slides) => onMetadataChange('slides', slides)}
+            height={block.metadata?.sliderHeight || 'medium'}
+            onHeightChange={(height) => onMetadataChange('sliderHeight', height)}
           />
         )}
 
@@ -494,7 +498,17 @@ function BlockActions({
   )
 }
 
-function SliderEditor({ slides, onChange }: { slides: SliderSlide[]; onChange: (slides: SliderSlide[]) => void }) {
+function SliderEditor({
+  slides,
+  onChange,
+  height,
+  onHeightChange,
+}: {
+  slides: SliderSlide[]
+  onChange: (slides: SliderSlide[]) => void
+  height: SliderHeight
+  onHeightChange: (height: SliderHeight) => void
+}) {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
 
   const updateSlide = (index: number, patch: Partial<SliderSlide>) => {
@@ -529,9 +543,29 @@ function SliderEditor({ slides, onChange }: { slides: SliderSlide[]; onChange: (
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-gray-500">
-        Visitors move between slides with arrows. Each slide shows its picture with the description under it.
-      </p>
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">Slider height</label>
+        <div className="flex flex-wrap gap-2">
+          {SLIDER_HEIGHT_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onHeightChange(value)}
+              className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+                height === value
+                  ? 'bg-red-600 text-white border-red-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          Pictures are resized to fit the slider without being cut off. Visitors move between slides with arrows,
+          and each slide shows its description under the picture.
+        </p>
+      </div>
       {slides.map((slide, index) => (
         <div key={index} className="rounded-lg border border-gray-200 bg-white p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
