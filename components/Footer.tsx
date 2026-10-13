@@ -107,9 +107,9 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               {data.siteLogo ? (
-                <img src={data.siteLogo as string} alt="" className="h-8 w-8" />
+                <img src={data.siteLogo as string} alt="" className="h-8 w-auto max-w-[12rem] shrink-0 object-contain" />
               ) : (
-                <BookOpen className="h-8 w-8 text-red-600" />
+                <BookOpen className="h-8 w-8 shrink-0 text-red-600" />
               )}
               <span className="text-xl font-bold">{siteName}</span>
             </div>

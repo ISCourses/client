@@ -141,9 +141,9 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               {logo ? (
-                <img src={logo} alt="" className="h-8 w-auto" />
+                <img src={logo} alt="" className="h-8 w-auto max-w-[10rem] shrink-0 object-contain" />
               ) : (
-                <BookOpen className="h-8 w-8 text-red-600" />
+                <BookOpen className="h-8 w-8 shrink-0 text-red-600" />
               )}
               <span className="text-xl font-bold text-gray-900">{siteName}</span>
             </Link>
