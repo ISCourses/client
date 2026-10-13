@@ -11,6 +11,7 @@ import { ArrowLeft, Save, Loader2, Upload, X, Image, FileText } from 'lucide-rea
 import Link from 'next/link'
 import AdminSidebar from '@/components/AdminSidebar'
 import api from '@/lib/api'
+import { useCategoryNames, withCurrentCategory } from '@/lib/use-categories'
 import toast from 'react-hot-toast'
 
 interface BookForm {
@@ -32,9 +33,8 @@ interface BookForm {
   isFeatured: boolean
 }
 
-const categories = ['Islamic Studies', 'Web Development', 'Data Science', 'Design', 'Business', 'Marketing', 'Other']
-
 export default function NewBookPage() {
+  const categoryNames = useCategoryNames()
   const { user, loading } = useAuth()
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
@@ -59,6 +59,8 @@ export default function NewBookPage() {
       tags: ''
     }
   })
+
+  const categoryOptions = withCurrentCategory(categoryNames, watch('category'))
 
   const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -251,11 +253,12 @@ export default function NewBookPage() {
                     Category *
                   </label>
                   <select
+                    key={categoryOptions.join('|')}
                     {...register('category', { required: 'Category is required' })}
                     className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <option value="">Select category</option>
-                    {categories.map((category) => (
+                    {categoryOptions.map((category) => (
                       <option key={category} value={category}>
                         {category}
                       </option>

@@ -153,7 +153,7 @@ export default function AdminCategoriesPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Category Management</h1>
-              <p className="text-gray-600">Manage course categories</p>
+              <p className="text-gray-600">Categories used by both courses and products</p>
             </div>
             <Button 
               onClick={() => {
@@ -177,7 +177,7 @@ export default function AdminCategoriesPage() {
                 {editingCategory ? 'Edit Category' : 'Create New Category'}
               </CardTitle>
               <CardDescription className="text-gray-600">
-                {editingCategory ? 'Update category information' : 'Add a new category for courses'}
+                {editingCategory ? 'Update category information' : 'Add a new category for courses and products'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -279,7 +279,7 @@ export default function AdminCategoriesPage() {
           <CardHeader>
             <CardTitle className="text-gray-900">All Categories ({filteredCategories.length})</CardTitle>
             <CardDescription className="text-gray-600">
-              Manage and organize course categories
+              Manage and organize categories for courses and products
             </CardDescription>
           </CardHeader>
           <CardContent>

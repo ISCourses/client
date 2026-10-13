@@ -11,6 +11,7 @@ import { ArrowLeft, Save, Loader2, Upload, X, FileText } from 'lucide-react'
 import Link from 'next/link'
 import AdminSidebar from '@/components/AdminSidebar'
 import api from '@/lib/api'
+import { useCategoryNames, withCurrentCategory } from '@/lib/use-categories'
 import toast from 'react-hot-toast'
 import { Book } from '@/types/book'
 
@@ -33,9 +34,8 @@ interface BookForm {
   isFeatured: boolean
 }
 
-const categories = ['Islamic Studies', 'Web Development', 'Data Science', 'Design', 'Business', 'Marketing', 'Other']
-
 export default function EditBookPage() {
+  const categoryNames = useCategoryNames()
   const { user, loading } = useAuth()
   const router = useRouter()
   const params = useParams()
@@ -64,6 +64,8 @@ export default function EditBookPage() {
       tags: ''
     }
   })
+
+  const categoryOptions = withCurrentCategory(categoryNames, watch('category'))
 
   useEffect(() => {
     if (user?.role === 'admin' && bookId) {
@@ -297,11 +299,12 @@ export default function EditBookPage() {
                     Category *
                   </label>
                   <select
+                    key={categoryOptions.join('|')}
                     {...register('category', { required: 'Category is required' })}
                     className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <option value="">Select category</option>
-                    {categories.map((category) => (
+                    {categoryOptions.map((category) => (
                       <option key={category} value={category}>
                         {category}
                       </option>

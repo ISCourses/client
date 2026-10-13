@@ -12,6 +12,7 @@ import { BookOpen, Plus, Edit, Trash2, Eye, Search, Filter, Star, Download } fro
 import Link from 'next/link'
 import AdminSidebar from '@/components/AdminSidebar'
 import api from '@/lib/api'
+import { useCategoryNames } from '@/lib/use-categories'
 import toast from 'react-hot-toast'
 import { Book } from '@/types/book'
 
@@ -23,7 +24,7 @@ export default function AdminBooksPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
 
-  const categories = ['Islamic Studies', 'Web Development', 'Data Science', 'Design', 'Business', 'Marketing', 'Other']
+  const categories = useCategoryNames()
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'admin')) {
