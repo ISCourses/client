@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ContentBlock, getBlockLayoutClass } from '@/lib/content-blocks'
+import { ContentBlock, SliderSlide, getBlockLayoutClass } from '@/lib/content-blocks'
 
 function isDirectVideoUrl(url: string) {
   return (
@@ -26,6 +28,69 @@ function renderTextContent(content: string) {
   }
   return (
     <div className="prose max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">{content}</div>
+  )
+}
+
+function SliderBlock({ slides }: { slides: SliderSlide[] }) {
+  const visible = slides.filter((slide) => slide.imageUrl)
+  const [index, setIndex] = useState(0)
+  if (visible.length === 0) return null
+
+  const current = Math.min(index, visible.length - 1)
+  const slide = visible[current]
+  const go = (next: number) => setIndex((next + visible.length) % visible.length)
+
+  return (
+    <div className="h-full" role="region" aria-roledescription="carousel" aria-label="Image slider">
+      <div className="relative overflow-hidden rounded-lg bg-gray-100 aspect-video">
+        <img
+          src={slide.imageUrl}
+          alt={slide.caption || `Slide ${current + 1}`}
+          className="h-full w-full object-contain"
+        />
+        {visible.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={() => go(current - 1)}
+              aria-label="Previous slide"
+              className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow hover:bg-white"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => go(current + 1)}
+              aria-label="Next slide"
+              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow hover:bg-white"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+      </div>
+      {slide.caption && (
+        <p className="mt-3 text-gray-700 leading-relaxed whitespace-pre-wrap" aria-live="polite">
+          {slide.caption}
+        </p>
+      )}
+      {visible.length > 1 && (
+        <div className="mt-3 flex justify-center gap-2">
+          {visible.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => go(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              aria-current={i === current ? 'true' : undefined}
+              className={`h-2.5 w-2.5 rounded-full transition-colors ${
+                i === current ? 'bg-red-600' : 'bg-gray-300 hover:bg-gray-400'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -70,6 +135,10 @@ function renderBlockContent(block: ContentBlock) {
         </Link>
       </Button>
     )
+  }
+
+  if (block.type === 'slider') {
+    return <SliderBlock slides={block.metadata?.slides || []} />
   }
 
   if (block.type === 'section') {

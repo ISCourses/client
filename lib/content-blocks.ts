@@ -1,4 +1,10 @@
-export type ContentBlockType = 'text' | 'image' | 'video' | 'button' | 'section'
+export type ContentBlockType = 'text' | 'image' | 'video' | 'button' | 'section' | 'slider'
+
+// One slide in a slider block: a picture with a description under it
+export interface SliderSlide {
+  imageUrl: string
+  caption: string
+}
 
 export type BlockLayoutWidth = 'full' | 'half' | 'third'
 
@@ -7,6 +13,7 @@ export interface ContentBlockMetadata {
   openInNewTab?: boolean
   blocks?: ContentBlock[]
   width?: BlockLayoutWidth
+  slides?: SliderSlide[]
 }
 
 export const LAYOUT_WIDTH_OPTIONS: { value: BlockLayoutWidth; label: string; hint: string }[] = [
@@ -54,6 +61,12 @@ export function normalizeBlockList(raw: unknown): ContentBlock[] {
         metadata.blocks = []
       }
 
+      if (type === 'slider') {
+        metadata.slides = Array.isArray(metadata.slides)
+          ? metadata.slides.map((slide) => ({ imageUrl: slide?.imageUrl || '', caption: slide?.caption || '' }))
+          : []
+      }
+
       return {
         type,
         content: block.content || '',
@@ -73,6 +86,11 @@ export function blocksToLegacyContent(blocks: ContentBlock[]): string {
       if (block.type === 'image') return `[Image: ${block.content}]`
       if (block.type === 'video') return `[Video: ${block.content}]`
       if (block.type === 'button') return `[Button: ${block.content}]`
+      if (block.type === 'slider') {
+        return (block.metadata?.slides || [])
+          .map((slide) => `[Image: ${slide.imageUrl}]${slide.caption ? `\n${slide.caption}` : ''}`)
+          .join('\n')
+      }
       if (block.type === 'section') {
         const title = block.content?.trim() || 'Section'
         const inner = blocksToLegacyContent(block.metadata?.blocks || [])
@@ -120,6 +138,14 @@ export function createEmptyBlock(type: ContentBlockType, order: number): Content
       content: '',
       order,
       metadata: { blocks: [] },
+    }
+  }
+  if (type === 'slider') {
+    return {
+      type: 'slider',
+      content: '',
+      order,
+      metadata: { slides: [{ imageUrl: '', caption: '' }], width: 'full' },
     }
   }
   if (type === 'button') {
