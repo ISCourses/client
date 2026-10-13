@@ -4,7 +4,14 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ContentBlock, SliderHeight, SliderSlide, getBlockLayoutClass, getSliderHeightClass } from '@/lib/content-blocks'
+import {
+  ContentBlock,
+  SliderHeight,
+  SliderSlide,
+  getAlignClass,
+  getBlockLayoutClass,
+  getSliderHeightClass,
+} from '@/lib/content-blocks'
 
 function isDirectVideoUrl(url: string) {
   return (
@@ -21,13 +28,13 @@ function renderTextContent(content: string) {
   if (looksLikeHtml(content)) {
     return (
       <div
-        className="prose max-w-none text-gray-700 leading-relaxed"
+        className="rich-text max-w-none text-gray-700 leading-relaxed"
         dangerouslySetInnerHTML={{ __html: content }}
       />
     )
   }
   return (
-    <div className="prose max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">{content}</div>
+    <div className="rich-text max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">{content}</div>
   )
 }
 
@@ -101,7 +108,7 @@ function renderBlockContent(block: ContentBlock) {
 
   if (block.type === 'image' && block.content) {
     return (
-      <div className="h-full">
+      <div className={`h-full ${getAlignClass(block.metadata?.align)}`}>
         <img src={block.content} alt="" className="max-w-full h-auto rounded-lg" />
       </div>
     )
@@ -126,14 +133,16 @@ function renderBlockContent(block: ContentBlock) {
 
   if (block.type === 'button' && block.content && block.metadata?.url) {
     return (
-      <Button asChild className="bg-red-600 hover:bg-red-700 text-white">
-        <Link
-          href={block.metadata.url}
-          {...(block.metadata.openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-        >
-          {block.content}
-        </Link>
-      </Button>
+      <div className={getAlignClass(block.metadata?.align)}>
+        <Button asChild className="bg-red-600 hover:bg-red-700 text-white">
+          <Link
+            href={block.metadata.url}
+            {...(block.metadata.openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          >
+            {block.content}
+          </Link>
+        </Button>
+      </div>
     )
   }
 

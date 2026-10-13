@@ -1,6 +1,25 @@
 export type ContentBlockType = 'text' | 'image' | 'video' | 'button' | 'section' | 'slider'
 
 // One slide in a slider block: a picture with a description under it
+export type BlockAlign = 'left' | 'center' | 'right'
+
+export const ALIGN_OPTIONS: { value: BlockAlign; label: string }[] = [
+  { value: 'left', label: 'Left' },
+  { value: 'center', label: 'Center' },
+  { value: 'right', label: 'Right' },
+]
+
+export function getAlignClass(align?: BlockAlign): string {
+  switch (align) {
+    case 'center':
+      return 'flex justify-center'
+    case 'right':
+      return 'flex justify-end'
+    default:
+      return 'flex justify-start'
+  }
+}
+
 export type SliderHeight = 'small' | 'medium' | 'large'
 
 export const SLIDER_HEIGHT_OPTIONS: { value: SliderHeight; label: string }[] = [
@@ -35,6 +54,7 @@ export interface ContentBlockMetadata {
   width?: BlockLayoutWidth
   slides?: SliderSlide[]
   sliderHeight?: SliderHeight
+  align?: BlockAlign
 }
 
 export const LAYOUT_WIDTH_OPTIONS: { value: BlockLayoutWidth; label: string; hint: string }[] = [

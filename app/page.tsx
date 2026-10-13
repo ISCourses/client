@@ -104,7 +104,7 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <div
-                    className="prose max-w-none text-gray-700"
+                    className="rich-text max-w-none text-gray-700"
                     dangerouslySetInnerHTML={{
                       __html: String(homepageContent!.aboutUs).replace(/\n/g, '<br />')
                     }}
@@ -124,7 +124,7 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <div
-                    className="prose max-w-none text-gray-700"
+                    className="rich-text max-w-none text-gray-700"
                     dangerouslySetInnerHTML={{
                       __html: String(homepageContent!.contactContent).replace(/\n/g, '<br />')
                     }}
@@ -147,7 +147,7 @@ export default function Home() {
                   )}
                   <CardContent>
                     <div
-                      className="prose max-w-none text-gray-700"
+                      className="rich-text max-w-none text-gray-700"
                       dangerouslySetInnerHTML={{
                         __html: (section.bodyHtml || '').replace(/\n/g, '<br />')
                       }}

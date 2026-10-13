@@ -275,7 +275,7 @@ export default function BlogDetailPage() {
           <Card className="mb-8">
             <CardContent className="pt-6">
               <div 
-                className="prose max-w-none text-gray-700 leading-relaxed"
+                className="rich-text max-w-none text-gray-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ 
                   __html: blog.content.replace(/\n/g, '<br />') 
                 }}

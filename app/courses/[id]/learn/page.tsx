@@ -1036,9 +1036,9 @@ export default function CourseLearnPage() {
                   {currentLesson.contentBlocks && currentLesson.contentBlocks.length > 0 ? (
                     <ContentBlocksRenderer blocks={currentLesson.contentBlocks} />
                   ) : (
-                    <div className="prose max-w-none">
+                    <div className="max-w-none">
                       <div 
-                        className="text-gray-700 leading-relaxed"
+                        className="rich-text text-gray-700 leading-relaxed"
                         dangerouslySetInnerHTML={{ 
                           __html: currentLesson.content.replace(/\n/g, '<br />') 
                         }}

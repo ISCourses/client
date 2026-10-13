@@ -91,7 +91,7 @@ export default function CmsPublicPage() {
             <ContentBlocksRenderer blocks={blocks} />
           ) : (
             <div
-              className="prose prose-lg max-w-none text-gray-800"
+              className="rich-text text-lg max-w-none text-gray-800"
               dangerouslySetInnerHTML={{ __html: page.bodyHtml || '<p></p>' }}
             />
           )}

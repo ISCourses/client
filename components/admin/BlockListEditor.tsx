@@ -32,6 +32,8 @@ import {
   LAYOUT_WIDTH_OPTIONS,
   reorderBlocks,
   SLIDER_HEIGHT_OPTIONS,
+  ALIGN_OPTIONS,
+  BlockAlign,
   SliderHeight,
   SliderSlide,
 } from '@/lib/content-blocks'
@@ -115,8 +117,8 @@ export default function BlockListEditor({
 
   const updateBlockMetadata = (
     index: number,
-    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides' | 'sliderHeight',
-    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[] | SliderHeight
+    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides' | 'sliderHeight' | 'align',
+    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[] | SliderHeight | BlockAlign
   ) => {
     const next = [...blocks]
     next[index] = {
@@ -263,8 +265,8 @@ interface BlockCardProps {
   onRemove: () => void
   onContentChange: (content: string) => void
   onMetadataChange: (
-    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides' | 'sliderHeight',
-    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[] | SliderHeight
+    field: 'url' | 'openInNewTab' | 'blocks' | 'width' | 'slides' | 'sliderHeight' | 'align',
+    value: string | boolean | ContentBlock[] | BlockLayoutWidth | SliderSlide[] | SliderHeight | BlockAlign
   ) => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>, kind: 'image' | 'video') => void
 }
@@ -350,6 +352,28 @@ function BlockCard({
             <p className="text-xs text-gray-500 mt-1">
               {LAYOUT_WIDTH_OPTIONS.find((o) => o.value === (block.metadata?.width || 'full'))?.hint}
             </p>
+          </div>
+        )}
+
+        {(block.type === 'image' || block.type === 'button') && (
+          <div className="mb-3">
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">Alignment</label>
+            <div className="flex flex-wrap gap-2">
+              {ALIGN_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onMetadataChange('align', value)}
+                  className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+                    (block.metadata?.align || 'left') === value
+                      ? 'bg-red-600 text-white border-red-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
