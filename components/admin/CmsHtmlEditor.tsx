@@ -37,6 +37,7 @@ export default function CmsHtmlEditor({ value, onChange, placeholder, className,
         [{ script: 'sub' }, { script: 'super' }],
         [{ list: 'ordered' }, { list: 'bullet' }],
         [{ indent: '-1' }, { indent: '+1' }],
+        [{ align: [] }],
         ['blockquote', 'link'],
         ['clean']
       ]

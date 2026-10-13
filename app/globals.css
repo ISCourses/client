@@ -108,31 +108,37 @@
   color: #374151;
 }
 
-/* Rich text output (e.g. course descriptions) */
-.rich-text p {
-  margin-bottom: 0.75em;
-}
-.rich-text p:last-child {
-  margin-bottom: 0;
+/* Rich text output from the Quill editor (pages, lessons, course descriptions, blogs).
+   Mirrors the editor's own spacing so published content looks like it did while editing. */
+.rich-text p,
+.rich-text ol,
+.rich-text ul,
+.rich-text pre,
+.rich-text blockquote,
+.rich-text h1,
+.rich-text h2,
+.rich-text h3 {
+  margin: 0;
+  padding: 0;
 }
 .rich-text h1 {
-  font-size: 1.5em;
+  font-size: 2em;
   font-weight: 700;
-  margin: 1em 0 0.5em;
+  line-height: 1.25;
 }
 .rich-text h2 {
-  font-size: 1.3em;
+  font-size: 1.5em;
   font-weight: 700;
-  margin: 1em 0 0.5em;
+  line-height: 1.3;
 }
 .rich-text h3 {
-  font-size: 1.15em;
+  font-size: 1.17em;
   font-weight: 600;
-  margin: 1em 0 0.5em;
+  line-height: 1.35;
 }
 .rich-text ul,
 .rich-text ol {
-  margin: 0 0 0.75em 1.5em;
+  padding-left: 1.5em;
 }
 .rich-text ul {
   list-style: disc;
@@ -140,12 +146,32 @@
 .rich-text ol {
   list-style: decimal;
 }
-.rich-text .ql-indent-1 {
-  margin-left: 1.5em;
+.rich-text ul ul,
+.rich-text li.ql-indent-1 {
+  list-style-type: circle;
 }
-.rich-text .ql-indent-2 {
-  margin-left: 3em;
+.rich-text ol li.ql-indent-1 {
+  list-style-type: lower-alpha;
 }
+.rich-text li.ql-indent-2 {
+  list-style-type: square;
+}
+.rich-text ol li.ql-indent-2 {
+  list-style-type: lower-roman;
+}
+.rich-text .ql-indent-1 { padding-left: 3em; }
+.rich-text .ql-indent-2 { padding-left: 6em; }
+.rich-text .ql-indent-3 { padding-left: 9em; }
+.rich-text .ql-indent-4 { padding-left: 12em; }
+.rich-text .ql-indent-5 { padding-left: 15em; }
+.rich-text li.ql-indent-1 { padding-left: 1.5em; margin-left: 1.5em; }
+.rich-text li.ql-indent-2 { padding-left: 1.5em; margin-left: 4.5em; }
+.rich-text li.ql-indent-3 { padding-left: 1.5em; margin-left: 7.5em; }
+.rich-text li.ql-indent-4 { padding-left: 1.5em; margin-left: 10.5em; }
+.rich-text li.ql-indent-5 { padding-left: 1.5em; margin-left: 13.5em; }
+.rich-text .ql-align-center { text-align: center; }
+.rich-text .ql-align-right { text-align: right; }
+.rich-text .ql-align-justify { text-align: justify; }
 .rich-text a {
   color: #dc2626;
   text-decoration: underline;
@@ -156,6 +182,11 @@
 .rich-text blockquote {
   border-left: 4px solid #e5e7eb;
   padding-left: 1em;
-  margin: 0 0 0.75em;
+  margin: 0.5em 0;
   color: #4b5563;
+}
+.rich-text img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
 }
