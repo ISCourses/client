@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, useParams } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,8 @@ import { ArrowLeft, Save, Eye, Loader2, BookOpen, FileQuestion, Upload, X, Youtu
 import Link from 'next/link'
 import AdminSidebar from '@/components/AdminSidebar'
 import api from '@/lib/api'
+import CmsHtmlEditor from '@/components/admin/CmsHtmlEditor'
+import { isRichTextEmpty } from '@/lib/rich-text'
 import toast from 'react-hot-toast'
 
 interface CourseForm {
@@ -58,6 +60,7 @@ export default function EditCoursePage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
     watch,
@@ -313,11 +316,18 @@ export default function EditCoursePage() {
                     <label className="block text-sm font-medium text-gray-900 mb-2">
                       Description *
                     </label>
-                    <textarea
-                      {...register('description', { required: 'Description is required' })}
-                      placeholder="Enter course description"
-                      rows={6}
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    <Controller
+                      name="description"
+                      control={control}
+                      rules={{ validate: (value) => !isRichTextEmpty(value) || 'Description is required' }}
+                      render={({ field }) => (
+                        <CmsHtmlEditor
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          placeholder="Enter course description"
+                          compact
+                        />
+                      )}
                     />
                     {errors.description && (
                       <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>

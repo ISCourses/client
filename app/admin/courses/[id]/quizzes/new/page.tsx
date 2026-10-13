@@ -288,7 +288,7 @@ export default function NewQuizPage() {
                         className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
                         <option value="multiple-choice">Multiple Choice (Auto-graded)</option>
-                        <option value="text">Text (Manual grading)</option>
+                        <option value="text">Text (Auto-graded)</option>
                         <option value="textarea">Textarea (Manual grading)</option>
                         <option value="select">Select (Auto-graded)</option>
                         <option value="checkbox">Checkbox (Auto-graded)</option>
@@ -419,11 +419,15 @@ export default function NewQuizPage() {
                           <>
                             <Input
                               {...register(`questions.${index}.correctAnswer`, { required: 'Correct answer is required' })}
-                              placeholder="Enter the expected answer (for manual grading reference)"
+                              placeholder={watch(`questions.${index}.type`) === 'text'
+                                ? 'Enter the correct answer, e.g. Paris|City of Paris'
+                                : 'Enter the expected answer (for manual grading reference)'}
                               className="bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                             />
                             <p className="mt-1 text-xs text-gray-600">
-                              This answer will be used as a reference for manual grading.
+                              {watch(`questions.${index}.type`) === 'text'
+                                ? "Students' answers are graded automatically against this answer, ignoring capital letters and extra spaces. To accept more than one answer, separate them with |"
+                                : 'This answer will be used as a reference for manual grading.'}
                             </p>
                           </>
                         )}

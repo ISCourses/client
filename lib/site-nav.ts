@@ -17,7 +17,8 @@ export type NavItem = {
 export const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: 'Courses', href: '/courses', order: 0 },
   { label: 'Products', href: '/books', order: 1 },
-  { label: 'Blog', href: '/blogs', order: 2 }
+  { label: 'Blog', href: '/blogs', order: 2 },
+  { label: 'Prayer Times', href: '/prayer-times', order: 3 }
 ]
 
 export function normalizeNavItems(raw: unknown): NavItem[] {

@@ -9,6 +9,7 @@ import { Clock, Users, Star, Search, Filter } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import api from '@/lib/api'
+import { htmlToPlainText } from '@/lib/rich-text'
 
 interface Course {
   _id: string
@@ -151,7 +152,7 @@ export default function CoursesPage() {
                   </div>
                   <CardTitle className="text-lg">{course.title}</CardTitle>
                   <CardDescription className="line-clamp-2">
-                    {course.description}
+                    {htmlToPlainText(course.description)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
