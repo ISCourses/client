@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Clock, Users, Star } from 'lucide-react'
 import api from '@/lib/api'
+import { htmlToPlainText } from '@/lib/rich-text'
 
 interface Course {
   _id: string
@@ -88,7 +89,7 @@ export default function FeaturedCourses() {
                 </div>
                 <CardTitle className="text-lg">{course.title}</CardTitle>
                 <CardDescription className="line-clamp-2">
-                  {course.description}
+                  {htmlToPlainText(course.description)}
                 </CardDescription>
               </CardHeader>
               <CardContent>

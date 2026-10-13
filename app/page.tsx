@@ -6,6 +6,7 @@ import HomeCarousel, { type CarouselSlide } from '@/components/HomeCarousel'
 import FeaturedCourses from '@/components/FeaturedCourses'
 import FeaturedBooks from '@/components/FeaturedBooks'
 import FeaturedBlogs from '@/components/FeaturedBlogs'
+import PrayerTimes from '@/components/PrayerTimes'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -77,6 +78,12 @@ export default function Home() {
         ) : (
           <Hero initialContent={homepageContent} />
         )}
+
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <PrayerTimes variant="compact" />
+          </div>
+        </section>
 
         <Suspense fallback={<div className="py-8 text-center text-gray-500">Loading...</div>}>
           <FeaturedCourses />

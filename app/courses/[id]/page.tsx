@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
 import PayPalButton from '@/components/PayPalButton'
+import { looksLikeHtml } from '@/lib/rich-text'
 
 interface Course {
   _id: string
@@ -199,7 +200,14 @@ export default function CourseDetailPage() {
             {/* Course Description */}
             {course.description && (
               <div className="mt-6">
-                <p className="text-gray-600 text-lg leading-relaxed">{course.description}</p>
+                {looksLikeHtml(course.description) ? (
+                  <div
+                    className="rich-text text-gray-600 text-lg leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: course.description }}
+                  />
+                ) : (
+                  <p className="text-gray-600 text-lg leading-relaxed whitespace-pre-wrap">{course.description}</p>
+                )}
               </div>
             )}
 

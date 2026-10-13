@@ -107,3 +107,55 @@
 .cms-html-editor .ql-snow .ql-picker {
   color: #374151;
 }
+
+/* Rich text output (e.g. course descriptions) */
+.rich-text p {
+  margin-bottom: 0.75em;
+}
+.rich-text p:last-child {
+  margin-bottom: 0;
+}
+.rich-text h1 {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin: 1em 0 0.5em;
+}
+.rich-text h2 {
+  font-size: 1.3em;
+  font-weight: 700;
+  margin: 1em 0 0.5em;
+}
+.rich-text h3 {
+  font-size: 1.15em;
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+}
+.rich-text ul,
+.rich-text ol {
+  margin: 0 0 0.75em 1.5em;
+}
+.rich-text ul {
+  list-style: disc;
+}
+.rich-text ol {
+  list-style: decimal;
+}
+.rich-text .ql-indent-1 {
+  margin-left: 1.5em;
+}
+.rich-text .ql-indent-2 {
+  margin-left: 3em;
+}
+.rich-text a {
+  color: #dc2626;
+  text-decoration: underline;
+}
+.rich-text a:hover {
+  color: #b91c1c;
+}
+.rich-text blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1em;
+  margin: 0 0 0.75em;
+  color: #4b5563;
+}
