@@ -7,6 +7,7 @@ import api from '@/lib/api'
 export type PublicSiteSettings = Record<string, unknown> & {
   siteName?: string
   siteLogo?: string
+  siteFooterLogo?: string
   siteDescription?: string
   navMenu?: unknown
   footerSettings?: unknown

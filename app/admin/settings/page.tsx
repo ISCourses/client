@@ -18,6 +18,7 @@ interface Settings {
   siteName: string
   siteDescription: string
   siteLogo: string
+  siteFooterLogo: string
   siteFavicon: string
   siteUrl: string
   contactEmail: string
@@ -135,6 +136,7 @@ export default function AdminSettingsPage() {
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingFooterLogo, setUploadingFooterLogo] = useState(false)
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false)
   const [uploadingCarouselIndex, setUploadingCarouselIndex] = useState<number | null>(null)
   const [cmsPublishedPages, setCmsPublishedPages] = useState<{ title: string; slug: string }[]>([])
@@ -174,6 +176,7 @@ export default function AdminSettingsPage() {
         siteName: data.siteName || '',
         siteDescription: data.siteDescription || '',
         siteLogo: data.siteLogo || '',
+        siteFooterLogo: data.siteFooterLogo || '',
         siteFavicon: data.siteFavicon || '',
         siteUrl: data.siteUrl || '',
         contactEmail: data.contactEmail || '',
@@ -370,6 +373,30 @@ export default function AdminSettingsPage() {
     }
   }
 
+  const handleFooterLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingFooterLogo(true)
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await api.post('/upload/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      updateField('siteFooterLogo', response.data.url)
+      toast.success('Footer logo uploaded. Click Save to apply it.')
+    } catch (error: any) {
+      console.error('Footer logo upload error:', error)
+      toast.error(error.response?.data?.message || 'Failed to upload footer logo')
+    } finally {
+      setUploadingFooterLogo(false)
+      e.target.value = ''
+    }
+  }
+
   const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -535,7 +562,7 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Site Logo
+                      Header Logo
                     </label>
                     {settings.siteLogo && (
                       <div className="relative mb-2">
@@ -578,6 +605,56 @@ export default function AdminSettingsPage() {
                         </>
                       )}
                     </Button>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Footer Logo
+                    </label>
+                    {settings.siteFooterLogo && (
+                      <div className="relative mb-2 rounded bg-gray-900 p-2">
+                        <img src={settings.siteFooterLogo} alt="Footer logo" className="h-20 object-contain rounded" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateField('siteFooterLogo', '')}
+                          className="absolute top-0 right-0 bg-white"
+                          aria-label="Remove footer logo"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFooterLogoUpload}
+                      className="hidden"
+                      id="footer-logo-upload"
+                      disabled={uploadingFooterLogo}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full bg-white border-gray-300 text-gray-900 hover:bg-gray-100"
+                      disabled={uploadingFooterLogo}
+                      onClick={() => document.getElementById('footer-logo-upload')?.click()}
+                    >
+                      {uploadingFooterLogo ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {settings.siteFooterLogo ? 'Change Footer Logo' : 'Upload Footer Logo'}
+                        </>
+                      )}
+                    </Button>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Shown on the footer&apos;s dark background. If empty, the footer uses the header logo.
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-2">
